@@ -1,3 +1,4 @@
+# Le site est déjà construit dans dist/ : Netlify n'a qu'à le publier, sans étape de build.
 [build]
-  command = "python3 build.py"
+  command = ""
   publish = "dist"
