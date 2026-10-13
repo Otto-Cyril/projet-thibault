@@ -1,0 +1,886 @@
+<title>Juste nous deux</title>
+<meta name="theme-color" content="#2a1420">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Juste nous deux">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gloock&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Mise en page : une table de jeu sur une colonne. En haut les joueurs et les réglages,
+   au centre une carte lumineuse, en dessous une manette (Vérité · dé · Action), et une barre d'onglets flottante. */
+@property --angle { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+:root {
+  --bg: #f7eef1;
+  --surface: #fffafc;
+  --raised: #ffffff;
+  --fg: #2a1420;
+  --muted: #80606e;
+  --line: #ead7df;
+  --accent: #d1135a;
+  --accent-ink: #ffffff;
+  --soft: #23a08f;
+  --medium: #e08a16;
+  --hot: #e5194a;
+  --coeur: #8d4fd6;
+  --p0: #e8466f;
+  --p1: #6d5cff;
+  --gold: #d99400;
+  --glow: transparent;
+  --card-shadow: 0 24px 50px -24px rgba(110, 20, 60, .35);
+  --display: "Gloock", "Georgia", serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #150c12; --surface: #21141c; --raised: #2a1923; --fg: #f8e9ef; --muted: #b997a7; --line: #3a2531;
+    --accent: #ff4f8b; --accent-ink: #ffffff; --soft: #4fd1bd; --medium: #ffaa45; --hot: #ff4d6d; --coeur: #b78cff;
+    --p0: #ff6b92; --p1: #9b8cff; --gold: #ffc23d; --card-shadow: 0 24px 50px -20px rgba(0, 0, 0, .8); color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #150c12; --surface: #21141c; --raised: #2a1923; --fg: #f8e9ef; --muted: #b997a7; --line: #3a2531;
+  --accent: #ff4f8b; --accent-ink: #ffffff; --soft: #4fd1bd; --medium: #ffaa45; --hot: #ff4d6d; --coeur: #b78cff;
+  --p0: #ff6b92; --p1: #9b8cff; --gold: #ffc23d; --card-shadow: 0 24px 50px -20px rgba(0, 0, 0, .8); color-scheme: dark;
+}
+/* Ambiance qui suit la catégorie : une lueur en haut de l'écran, et une vraie nuit rouge en Hot. */
+:root[data-mood="soft"] { --glow: rgba(35, 160, 143, .2); }
+:root[data-mood="medium"] { --glow: rgba(224, 138, 22, .22); }
+:root[data-mood="coeur"] { --glow: rgba(141, 79, 214, .26); }
+:root[data-mood="hot"] {
+  --bg: #1d050c; --surface: #2c0b16; --raised: #3a0f1e; --fg: #ffeaf0; --muted: #e6a4b7; --line: #571c30;
+  --accent: #ff2e63; --accent-ink: #ffffff; --hot: #ff3d66; --medium: #ffb054; --soft: #6fd6c6; --coeur: #c99cff;
+  --p0: #ff7aa0; --p1: #ad9cff; --gold: #ffc23d; --glow: rgba(255, 30, 85, .45); --card-shadow: 0 24px 60px -18px rgba(255, 20, 70, .45); color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  margin: 0; color: var(--fg); font: 16px/1.45 var(--body); -webkit-tap-highlight-color: transparent;
+  background: radial-gradient(140% 60% at 50% -10%, var(--glow), transparent 70%) no-repeat, var(--bg);
+  transition: background-color .6s;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.app { max-width: 460px; margin: 0 auto; padding: 16px 16px 120px; display: flex; flex-direction: column; gap: 16px; min-height: 100%; }
+
+/* En-tête */
+header.top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+h1 { font: 400 1.75rem/1 var(--display); margin: 0; letter-spacing: -.015em; }
+h1 em { font-style: normal; background: linear-gradient(90deg, var(--p0), var(--accent), var(--p1)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.rounds { font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-variant-numeric: tabular-nums; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; }
+
+/* Joueurs */
+.players { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; }
+.player { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px 4px 4px; min-width: 0; }
+.player i { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--pc); box-shadow: 0 0 14px -2px var(--pc); display: grid; place-items: center; color: #fff; font-style: normal; font-weight: 700; font-size: .85rem; }
+.player.p0 { --pc: var(--p0); }
+.player.p1 { --pc: var(--p1); }
+.player input { width: 100%; min-width: 0; border: 0; background: transparent; padding: 4px 0; font-weight: 600; outline: none; }
+.players .amp { font: 400 1.3rem var(--display); color: var(--muted); }
+
+/* Réglages */
+.controls { display: flex; flex-direction: column; gap: 8px; }
+.seg { display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 4px; }
+.seg button { flex: 1; min-width: 0; border: 0; background: transparent; padding: 8px 2px; border-radius: 12px; font-size: .8rem; font-weight: 700; color: var(--muted); display: flex; align-items: center; justify-content: center; gap: 6px; transition: background .2s, color .2s, box-shadow .2s; }
+.seg button[aria-pressed="true"] { background: var(--raised); color: var(--fg); box-shadow: 0 2px 10px -4px rgba(0, 0, 0, .25), inset 0 0 0 1px var(--line); }
+.seg.level button { --c: var(--fg); }
+.seg.level button::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--c); flex: none; }
+.seg.level button[data-v="all"] { --c: var(--muted); }
+.seg.level button[data-v="soft"] { --c: var(--soft); }
+.seg.level button[data-v="medium"] { --c: var(--medium); }
+.seg.level button[data-v="hot"] { --c: var(--hot); }
+.seg.level button { gap: 5px; }
+.seg.level button[data-v="thermo"]::before { display: none; }
+.seg.level button[data-v="thermo"] { background-image: linear-gradient(90deg, var(--soft), var(--medium), var(--hot)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.seg.level button[aria-pressed="true"] { color: var(--c); background: color-mix(in srgb, var(--c) 14%, var(--raised)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 45%, transparent), 0 0 18px -6px var(--c); }
+.seg.level button[data-v="all"][aria-pressed="true"] { color: var(--fg); }
+.seg.level button[data-v="thermo"][aria-pressed="true"] { background: linear-gradient(90deg, var(--soft), var(--medium), var(--hot)); color: #fff; background-clip: padding-box; -webkit-background-clip: padding-box; box-shadow: 0 0 18px -6px var(--hot); }
+
+/* La carte lumineuse : un bord qui tourne, un halo de la couleur de la catégorie, un reflet au tirage. */
+.table { display: flex; flex-direction: column; gap: 14px; }
+.card {
+  --kind: var(--accent);
+  position: relative; min-height: 330px; padding: 24px 22px 18px; border-radius: 28px; overflow: hidden;
+  display: flex; flex-direction: column; gap: 14px; isolation: isolate;
+  border: 2px solid transparent;
+  background:
+    radial-gradient(110% 70% at 0% 0%, color-mix(in srgb, var(--kind) 20%, transparent), transparent 60%) padding-box,
+    radial-gradient(90% 70% at 100% 100%, color-mix(in srgb, var(--kind) 14%, transparent), transparent 65%) padding-box,
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    conic-gradient(from var(--angle), var(--kind), transparent 22%, color-mix(in srgb, var(--kind) 35%, #fff) 50%, transparent 78%, var(--kind)) border-box;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--kind) 14%, transparent), 0 14px 60px -14px color-mix(in srgb, var(--kind) 60%, transparent), var(--card-shadow);
+  animation: spin 7s linear infinite;
+  touch-action: pan-y; user-select: none; -webkit-user-select: none;
+  transition: transform .25s ease, box-shadow .4s;
+}
+@keyframes spin { to { --angle: 360deg; } }
+.card::after {
+  content: ""; position: absolute; inset: -40% -60%; z-index: -1; pointer-events: none; opacity: 0;
+  background: linear-gradient(105deg, transparent 42%, rgba(255, 255, 255, .55) 50%, transparent 58%);
+}
+.card.flip { animation: spin 7s linear infinite, flip .55s cubic-bezier(.2, .9, .3, 1.2); }
+.card.flip::after { animation: sheen .9s .15s ease-out; }
+@keyframes flip { from { transform: perspective(900px) rotateY(80deg) scale(.92); opacity: .2; } to { transform: none; opacity: 1; } }
+@keyframes sheen { 0% { transform: translateX(-60%); opacity: 1; } 100% { transform: translateX(60%); opacity: 0; } }
+.card.shake { animation: spin 7s linear infinite, shake .45s ease; }
+@keyframes shake { 20%, 60% { transform: translateX(-9px) rotate(-1.5deg); } 40%, 80% { transform: translateX(9px) rotate(1.5deg); } }
+.card.ring { animation: spin 2s linear infinite, ring .6s ease 2; }
+@keyframes ring { 50% { transform: scale(1.025); } }
+.card.hotcard { animation: spin 4s linear infinite, breathe 2.6s ease-in-out infinite; }
+.card.hotcard.flip { animation: spin 4s linear infinite, flip .55s cubic-bezier(.2, .9, .3, 1.2), breathe 2.6s ease-in-out .6s infinite; }
+@keyframes breathe { 50% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--kind) 30%, transparent), 0 14px 80px -6px color-mix(in srgb, var(--kind) 85%, transparent), var(--card-shadow); } }
+.card.dragging { transition: none; }
+.card .mark { position: absolute; right: -14px; bottom: -64px; z-index: -1; font: 400 15rem/1 var(--display); color: var(--kind); opacity: .07; pointer-events: none; }
+.card .meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: .72rem; text-transform: uppercase; letter-spacing: .12em; font-weight: 800; color: var(--kind); }
+.card .meta .kind { display: flex; align-items: center; gap: 8px; }
+.card .meta .kind::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--kind); box-shadow: 0 0 10px 2px var(--kind); }
+.pill { border-radius: 999px; padding: 3px 10px; font-size: .68rem; background: color-mix(in srgb, var(--kind) 14%, transparent); }
+.card .text { font: 400 1.65rem/1.22 var(--display); flex: 1; display: flex; align-items: center; text-wrap: balance; overflow-wrap: anywhere; }
+.card.hotcard .text { text-shadow: 0 0 24px color-mix(in srgb, var(--kind) 55%, transparent); }
+.card .who { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: .88rem; color: var(--muted); flex-wrap: wrap; }
+.card .who > span:first-child { display: inline-flex; align-items: center; gap: 6px; }
+.card .who .name { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--fg); background: color-mix(in srgb, var(--pc) 16%, transparent); border-radius: 999px; padding: 3px 10px 3px 4px; }
+.card .who .name i { width: 18px; height: 18px; border-radius: 50%; background: var(--pc); box-shadow: 0 0 10px var(--pc); }
+.card.empty .text { color: var(--muted); font-size: 1.35rem; }
+
+.timer { display: flex; align-items: center; gap: 10px; }
+.timer button { border: 1px solid color-mix(in srgb, var(--kind) 45%, transparent); background: color-mix(in srgb, var(--kind) 10%, transparent); color: var(--kind); border-radius: 999px; padding: 6px 12px; font-weight: 700; font-size: .82rem; }
+.timer .bar { flex: 1; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.timer .bar i { display: block; height: 100%; width: 100%; background: var(--kind); box-shadow: 0 0 10px var(--kind); transform-origin: left; }
+.timer .left { font-variant-numeric: tabular-nums; font-weight: 800; min-width: 3ch; text-align: right; }
+
+.tools { display: flex; gap: 6px; }
+.tools button { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 5px 11px; font-size: .78rem; font-weight: 600; color: var(--muted); }
+.tools button[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.swipe-tag { position: absolute; top: 44%; padding: 6px 12px; border-radius: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; font-size: .78rem; opacity: 0; pointer-events: none; background: var(--surface); }
+.swipe-tag.l { left: 14px; color: var(--hot); border: 2px solid var(--hot); transform: rotate(-8deg); }
+.swipe-tag.r { right: 14px; color: var(--soft); border: 2px solid var(--soft); transform: rotate(8deg); }
+
+/* La jauge de température */
+.thermo { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 8px 12px; }
+.thermo .ico { font-size: 1.15rem; }
+.thermo .tube { position: relative; flex: 1; height: 12px; border-radius: 999px; overflow: hidden; background: linear-gradient(90deg, var(--soft), var(--medium) 50%, var(--hot)); }
+.thermo .tube::after { content: ""; position: absolute; inset: 0 0 0 auto; width: var(--cover, 100%); background: var(--line); transition: width .8s cubic-bezier(.3, 1.3, .5, 1); }
+.thermo .tube .heat { position: absolute; top: 0; bottom: 0; width: 22px; left: calc(var(--t, 0) * 1% - 11px); background: radial-gradient(circle, #fff 0 25%, transparent 70%); opacity: .8; transition: left .8s cubic-bezier(.3, 1.3, .5, 1); z-index: 1; }
+.thermo b { font-variant-numeric: tabular-nums; font-weight: 800; min-width: 3.4ch; text-align: right; color: var(--tc, var(--muted)); transition: color .4s; }
+.thermo.bump { animation: bump .6s ease; }
+@keyframes bump { 30% { transform: scale(1.04); box-shadow: 0 0 26px -6px var(--hot); } }
+.thermo-help { margin: -8px 0 0; font-size: .72rem; color: var(--muted); text-align: center; }
+.done { border: 0; border-radius: 999px; padding: 8px 14px; font-weight: 800; font-size: .88rem; color: #fff; background: linear-gradient(90deg, var(--soft), var(--medium), var(--hot)); box-shadow: 0 8px 20px -10px var(--hot); white-space: nowrap; }
+.done[disabled] { opacity: .35; cursor: default; box-shadow: none; }
+.float-deg { position: fixed; z-index: 7; pointer-events: none; font-weight: 900; font-size: 1.2rem; color: var(--hot); text-shadow: 0 0 12px var(--hot); animation: deg 1.1s ease-out forwards; }
+@keyframes deg { to { transform: translateY(-46px); opacity: 0; } }
+.card.reward { animation: spin 2.5s linear infinite, flip .7s cubic-bezier(.2, .9, .3, 1.2), breathe 1.8s ease-in-out .7s infinite; }
+.card.reward .text { text-shadow: 0 0 22px color-mix(in srgb, var(--gold) 50%, transparent); }
+.card .music { margin-left: 2px; }
+
+/* La manette */
+.dock { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 14px; margin-top: 4px; }
+.side { height: 68px; border-radius: 22px; border: 1px solid var(--line); background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-weight: 800; font-size: .92rem; letter-spacing: .02em; transition: transform .15s, box-shadow .25s, border-color .25s; }
+.side .ic { font-size: 1.35rem; line-height: 1; }
+.side.v { --c: var(--accent); }
+.side.a { --c: var(--medium); }
+.side:hover, .side:focus-visible { border-color: color-mix(in srgb, var(--c) 55%, transparent); box-shadow: 0 0 24px -8px var(--c); }
+.side:active { transform: scale(.95); }
+.dice {
+  width: 88px; height: 88px; border-radius: 50%; border: 0; font-size: 2.3rem; line-height: 1; color: #fff; display: grid; place-items: center;
+  background: radial-gradient(circle at 32% 26%, color-mix(in srgb, var(--accent) 45%, #fff), var(--accent) 58%, color-mix(in srgb, var(--accent) 65%, #000));
+  box-shadow: 0 14px 34px -8px color-mix(in srgb, var(--accent) 75%, transparent), 0 0 0 7px color-mix(in srgb, var(--accent) 14%, transparent);
+  transition: transform .15s;
+}
+.dice:active { transform: scale(.92); }
+.dice.roll span { display: inline-block; animation: roll .5s cubic-bezier(.3, 1.4, .5, 1); }
+@keyframes roll { from { transform: rotate(-200deg) scale(.6); } }
+.dice.heart { background: radial-gradient(circle at 32% 26%, color-mix(in srgb, var(--coeur) 45%, #fff), var(--coeur) 58%, color-mix(in srgb, var(--coeur) 65%, #000)); box-shadow: 0 14px 34px -8px color-mix(in srgb, var(--coeur) 75%, transparent), 0 0 0 7px color-mix(in srgb, var(--coeur) 14%, transparent); }
+.under { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.hint { font-size: .74rem; color: var(--muted); margin: 0; }
+.pass { border: 0; background: transparent; padding: 6px 2px; font-weight: 700; font-size: .85rem; color: var(--hot); white-space: nowrap; }
+#pass-coeur { color: var(--coeur); }
+.pass[disabled] { opacity: .35; cursor: default; }
+.center { justify-content: center; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 12px; font-size: .82rem; font-weight: 700; color: var(--muted); }
+.chips button[aria-pressed="true"] { color: var(--coeur); border-color: color-mix(in srgb, var(--coeur) 50%, transparent); background: color-mix(in srgb, var(--coeur) 12%, var(--surface)); box-shadow: 0 0 16px -6px var(--coeur); }
+.intro { color: var(--muted); font-size: .92rem; margin: 0; }
+
+/* Mes cartes et récap */
+.panel { display: flex; flex-direction: column; gap: 12px; }
+.panel h2 { font: 400 1.4rem/1.2 var(--display); margin: 8px 0 0; }
+form.add { display: flex; flex-direction: column; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 14px; }
+form.add label { font-size: .72rem; text-transform: uppercase; letter-spacing: .1em; font-weight: 800; color: var(--muted); }
+form.add textarea { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 10px; min-height: 70px; resize: vertical; }
+form.add .row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+form.add select { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 8px; min-width: 0; }
+.primary { border: 0; background: var(--accent); color: var(--accent-ink); border-radius: 14px; padding: 12px; font-weight: 800; box-shadow: 0 10px 24px -10px var(--accent); }
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.list li { display: flex; gap: 10px; align-items: flex-start; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 12px; }
+.list li p { margin: 0; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.list li small { display: block; color: var(--muted); font-size: .74rem; }
+.list li button { border: 0; background: transparent; color: var(--muted); font-size: 1.1rem; line-height: 1; padding: 2px 4px; }
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stat { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 14px; display: flex; flex-direction: column; gap: 6px; min-width: 0; border-top: 3px solid var(--pc); }
+.stat.p0 { --pc: var(--p0); }
+.stat.p1 { --pc: var(--p1); }
+.stat h3 { margin: 0; font: 400 1.25rem var(--display); overflow-wrap: anywhere; }
+.stat dl { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; font-size: .9rem; }
+.stat dt { color: var(--muted); }
+.stat dd { margin: 0; font-weight: 800; font-variant-numeric: tabular-nums; text-align: right; }
+.verdict { font-family: var(--display); font-size: 1.2rem; margin: 0; }
+.danger { border: 1px solid var(--line); background: transparent; border-radius: 14px; padding: 10px; font-weight: 700; color: var(--muted); }
+.confirm { display: flex; gap: 8px; }
+.confirm button { flex: 1; }
+.note { font-size: .8rem; color: var(--muted); margin: 0; }
+
+/* Effets, message et onglets flottants */
+#fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; }
+.toast { position: fixed; left: 16px; right: 16px; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); max-width: 428px; margin: 0 auto; background: var(--fg); color: var(--bg); border-radius: 16px; padding: 10px 12px; display: flex; gap: 10px; align-items: center; z-index: 6; box-shadow: var(--card-shadow); animation: up .3s ease; }
+.toast p { margin: 0; flex: 1; font-size: .9rem; min-width: 0; }
+.toast button { border: 0; border-radius: 10px; padding: 8px 10px; font-weight: 800; background: var(--accent); color: var(--accent-ink); white-space: nowrap; }
+.toast button.x { background: transparent; color: inherit; padding: 4px 6px; }
+@keyframes up { from { transform: translateY(20px); opacity: 0; } }
+nav.tabs { position: fixed; left: 16px; right: 16px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 5; display: flex; justify-content: center; pointer-events: none; }
+nav.tabs div { pointer-events: auto; display: flex; gap: 2px; width: 100%; max-width: 428px; padding: 6px; border-radius: 24px; border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface) 82%, transparent); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); box-shadow: 0 12px 30px -12px rgba(0, 0, 0, .35); }
+nav.tabs button { flex: 1; min-width: 0; border: 0; background: transparent; padding: 7px 2px; border-radius: 18px; font-size: .72rem; font-weight: 700; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 1px; transition: background .2s, color .2s; }
+nav.tabs button span { font-size: 1.15rem; }
+nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+@media (prefers-reduced-motion: reduce) {
+  .card, .card.reward, .thermo.bump, .float-deg, .card.flip, .card.shake, .card.ring, .card.hotcard, .card.hotcard.flip, .card.flip::after, .dice.roll span, .toast { animation: none; }
+}
+</style>
+
+<div class="app">
+  <header class="top">
+    <h1>Juste <em>nous</em> deux</h1>
+    <span class="rounds" id="rounds">Manche 0</span>
+  </header>
+
+  <div class="players">
+    <label class="player p0"><i id="i0">1</i><input id="p0" aria-label="Prénom du joueur 1" maxlength="16"></label>
+    <span class="amp">&amp;</span>
+    <label class="player p1"><i id="i1">2</i><input id="p1" aria-label="Prénom du joueur 2" maxlength="16"></label>
+  </div>
+
+  <div class="controls">
+    <div class="seg" id="ctx" role="group" aria-label="Où êtes-vous ?">
+      <button data-v="E">🤝 Ensemble</button>
+      <button data-v="A">📱 En appel</button>
+    </div>
+    <div class="seg level" id="level" role="group" aria-label="Intensité" data-only="jeu">
+      <button data-v="all">Tout</button>
+      <button data-v="soft">Soft</button>
+      <button data-v="medium">Medium</button>
+      <button data-v="hot">Hot</button>
+      <button data-v="thermo">🌡 Auto</button>
+    </div>
+  </div>
+
+  <!-- Onglet Jeu -->
+  <section class="table" id="tab-jeu">
+    <div class="thermo" id="thermo" role="meter" aria-label="Température" aria-valuemin="0" aria-valuemax="100">
+      <span class="ico">🌡</span><div class="tube" id="tube"><span class="heat"></span></div><b id="thermo-val">0°</b>
+    </div>
+    <p class="thermo-help" id="thermo-help"></p>
+    <article class="card" id="card-jeu"></article>
+    <div class="under">
+      <button class="done" id="done-jeu">✓ Fait ! +°</button>
+      <button class="pass" id="pass-jeu">Je passe → gage</button>
+    </div>
+    <div class="dock">
+      <button class="side v" id="btn-v"><span class="ic">🔥</span>Vérité</button>
+      <button class="dice" id="btn-r" aria-label="Tirage aléatoire"><span>🎲</span></button>
+      <button class="side a" id="btn-a"><span class="ic">😈</span>Action</button>
+    </div>
+  </section>
+
+  <!-- Onglet Cœur ouvert -->
+  <section class="table" id="tab-coeur" hidden>
+    <p class="intro">Ici on prend son temps. Pas de score ni de filtre : on répond chacun son tour, et l'autre écoute sans interrompre.</p>
+    <div class="chips" id="axes"></div>
+    <article class="card" id="card-coeur"></article>
+    <div class="under">
+      <p class="hint">Glisse → suivante · ← pas prêt·e</p>
+      <button class="pass" id="pass-coeur">Pas prêt·e → gage doux</button>
+    </div>
+    <div class="dock"><span></span><button class="dice heart" id="btn-c" aria-label="Carte suivante"><span>💜</span></button><span></span></div>
+  </section>
+
+  <!-- Onglet Mes cartes -->
+  <section class="panel" id="tab-perso" hidden>
+    <h2>Vos cartes à vous</h2>
+    <p class="note">Elles se glissent dans le tirage, au milieu des autres.</p>
+    <form class="add" id="add-form">
+      <label for="c-text">Texte de la carte</label>
+      <textarea id="c-text" required maxlength="240" placeholder="Ex. : Raconte ce que tu as pensé de notre premier appel."></textarea>
+      <div class="row">
+        <select id="c-type" aria-label="Type">
+          <option value="verite">Vérité</option>
+          <option value="action">Action</option>
+          <option value="coeur">Cœur ouvert</option>
+        </select>
+        <select id="c-level" aria-label="Intensité">
+          <option value="soft">Soft</option>
+          <option value="medium">Medium</option>
+          <option value="hot">Hot</option>
+        </select>
+        <select id="c-ctx" aria-label="Contexte">
+          <option value="">Partout</option>
+          <option value="E">Ensemble</option>
+          <option value="A">En appel</option>
+        </select>
+      </div>
+      <button class="primary" type="submit">Ajouter la carte</button>
+    </form>
+    <ul class="list" id="perso-list"></ul>
+    <h2>Vos coups de cœur</h2>
+    <p class="note">Les cartes marquées ♥ reviennent plus souvent dans le tirage.</p>
+    <ul class="list" id="fav-list"></ul>
+    <h2>Cartes écartées</h2>
+    <ul class="list" id="ban-list"></ul>
+  </section>
+
+  <!-- Onglet Récap -->
+  <section class="panel" id="tab-recap" hidden>
+    <h2>Récap de la partie</h2>
+    <p class="verdict" id="verdict"></p>
+    <div class="stats" id="stats"></div>
+    <button class="danger" id="reset-game">Nouvelle partie (remet les scores à zéro)</button>
+    <div class="confirm" id="reset-confirm" hidden>
+      <button class="primary" id="reset-yes">Oui, remettre à zéro</button>
+      <button class="danger" id="reset-no">Annuler</button>
+    </div>
+    <button class="danger" id="reset-seen">Revoir toutes les cartes depuis le début</button>
+    <p class="note" id="seen-info"></p>
+  </section>
+</div>
+
+<canvas id="fx" aria-hidden="true"></canvas>
+<div class="toast" id="toast" role="status" hidden><p id="toast-text"></p><button type="button" id="toast-go"></button><button type="button" class="x" id="toast-x" aria-label="Fermer">✕</button></div>
+
+<nav class="tabs" aria-label="Sections">
+  <div role="tablist">
+    <button role="tab" data-tab="jeu"><span>🎲</span>Jeu</button>
+    <button role="tab" data-tab="coeur"><span>❤️</span>Cœur ouvert</button>
+    <button role="tab" data-tab="perso"><span>✍️</span>Mes cartes</button>
+    <button role="tab" data-tab="recap"><span>📊</span>Récap</button>
+  </div>
+</nav>
+
+<script id="cartes" type="application/json">/*CARTES*/</script>
+<script>
+(function () {
+  "use strict";
+  var DATA = JSON.parse(document.getElementById("cartes").textContent);
+  var LEVELS = ["soft", "medium", "hot"];
+  var LEVEL_LABEL = { soft: "Soft", medium: "Medium", hot: "Hot" };
+  var KEY = "juste-nous-deux-v1";
+
+  // ---------- Sauvegarde (reste sur le téléphone) ----------
+  var defaults = {
+    names: ["Joueur 1", "Joueur 2"], ctx: "E", level: "thermo", temp: 0, tab: "jeu", axe: "Tout",
+    seen: {}, custom: [], rounds: 0, fav: [], ban: [], recent: [],
+    stats: [{ v: 0, a: 0, c: 0, g: 0 }, { v: 0, a: 0, c: 0, g: 0 }]
+  };
+  var S;
+  try { S = Object.assign({}, defaults, JSON.parse(localStorage.getItem(KEY) || "{}")); }
+  catch (e) { S = Object.assign({}, defaults); }
+  if (S.level === "crescendo") S.level = "thermo";
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+  // ---------- Lecture d'une carte : "@E texte #20" ----------
+  function parse(raw, extra) {
+    var c = Object.assign({ ctx: "", t: 0 }, extra);
+    var s = raw.trim();
+    var m;
+    while ((m = s.match(/^(@[EA]|~M)\s+/))) {
+      if (m[1] === "~M") c.music = true; else c.ctx = m[1].charAt(1);
+      s = s.slice(m[0].length);
+    }
+    m = s.match(/\s*#(\d+)$/);
+    if (m) { c.t = +m[1]; s = s.slice(0, m.index); }
+    c.text = s;
+    c.id = (c.kind + "|" + s);
+    return c;
+  }
+
+  // Toutes les cartes (de base + perso), aplaties.
+  function allCards() {
+    var out = [];
+    ["verite", "action"].forEach(function (kind) {
+      var src = kind === "verite" ? DATA.verites : DATA.actions;
+      LEVELS.forEach(function (lv) { src[lv].forEach(function (r) { out.push(parse(r, { kind: kind, level: lv })); }); });
+    });
+    Object.keys(DATA.coeur).forEach(function (axe) {
+      DATA.coeur[axe].forEach(function (r) { out.push(parse(r, { kind: "coeur", axe: axe })); });
+    });
+    ["verite", "action"].forEach(function (k) {
+      LEVELS.forEach(function (lv) { DATA.gages[k][lv].forEach(function (r) { out.push(parse(r, { kind: "gage-" + k, level: lv })); }); });
+    });
+    DATA.gages.coeur.forEach(function (r) { out.push(parse(r, { kind: "gage-coeur" })); });
+    (DATA.recompenses || []).forEach(function (r) { out.push(parse(r, { kind: "recompense" })); });
+    S.custom.forEach(function (c) {
+      out.push({ kind: c.type, level: c.type === "coeur" ? undefined : c.level, axe: c.type === "coeur" ? "Nos cartes" : undefined,
+        ctx: c.ctx, t: 0, text: c.text, id: "perso|" + c.id, perso: true });
+    });
+    return out;
+  }
+
+  // ---------- Paquets sans répétition ----------
+  // Un paquet = les cartes qui passent le filtre. On tire parmi celles pas encore vues ;
+  // quand tout le paquet est passé, on l'oublie et on recommence.
+  function draw(kind, filter, deckKey) {
+    var pool = allCards().filter(function (c) {
+      return c.kind === kind && (!c.ctx || c.ctx === S.ctx) && S.ban.indexOf(c.id) === -1 && filter(c);
+    });
+    if (!pool.length) return null;
+    // Les coups de cœur ♥ ont une chance sur cinq de revenir même s'ils sont déjà passés.
+    var favs = pool.filter(function (c) { return S.fav.indexOf(c.id) !== -1; });
+    if (favs.length && Math.random() < .2) {
+      var f = favs[Math.floor(Math.random() * favs.length)];
+      return { card: f, left: pool.length - (S.seen[deckKey] || []).length, total: pool.length, again: true };
+    }
+    var seen = S.seen[deckKey] || [];
+    var fresh = pool.filter(function (c) { return seen.indexOf(c.id) === -1; });
+    if (!fresh.length) { seen = []; fresh = pool; }
+    var card = fresh[Math.floor(Math.random() * fresh.length)];
+    seen.push(card.id);
+    S.seen[deckKey] = seen;
+    return { card: card, left: fresh.length - 1, total: pool.length };
+  }
+
+  // Intensité réelle. En mode Auto, la température décide, avec une part de hasard :
+  // à 0° presque que du Soft, vers 50° surtout du Medium, au-delà de 70° surtout du Hot.
+  function lvl() {
+    if (S.level !== "thermo") return S.level;
+    var t = S.temp;
+    var w = {
+      soft: Math.max(0.03, 1 - t / 45),
+      medium: Math.max(0.05, 1 - Math.abs(t - 50) / 40),
+      hot: Math.max(t < 25 ? 0 : 0.03, (t - 35) / 50)
+    };
+    var r = Math.random() * (w.soft + w.medium + w.hot);
+    if ((r -= w.soft) < 0) return "soft";
+    if ((r -= w.medium) < 0) return "medium";
+    return "hot";
+  }
+  function tempLevel() { return S.temp < 35 ? "soft" : S.temp < 70 ? "medium" : "hot"; }
+
+  // ---------- Jauge de température ----------
+  // Une carte réalisée fait monter la jauge (plus la carte est hot, plus ça monte), une carte esquivée la refroidit.
+  // À 100° : carte récompense, puis la jauge repart de zéro.
+  var GAIN = { soft: [5, 9], medium: [8, 12], hot: [10, 15] };
+  function heat(delta) {
+    S.temp = Math.max(0, Math.min(100, S.temp + delta));
+    var th = $("thermo"); th.classList.remove("bump"); void th.offsetWidth; th.classList.add("bump");
+    var r = $("thermo-val").getBoundingClientRect(), f = document.createElement("span");
+    f.className = "float-deg"; f.textContent = (delta > 0 ? "+" : "") + delta + "°";
+    if (delta < 0) f.style.color = "var(--soft)";
+    f.style.left = (r.left - 6) + "px"; f.style.top = (r.top - 8) + "px";
+    document.body.appendChild(f); setTimeout(function () { f.remove(); }, 1200);
+  }
+  function done() {
+    var cur = current.jeu;
+    if (!cur || cur.done || cur.isGage) return false;
+    cur.done = true;
+    var g = GAIN[cur.card.level || "soft"], gain = g[0] + Math.floor(Math.random() * (g[1] - g[0] + 1));
+    if (cur.card.kind === "action") gain += 2;
+    heat(gain); buzz(20);
+    if (S.temp >= 100) { reward(); return true; }
+    save(); renderAll();
+    return true;
+  }
+  function reward() {
+    var res = draw("recompense", function () { return true; }, "recompense|" + S.ctx);
+    if (!res) return;
+    current.jeu = Object.assign(res, { player: pickPlayer(), fresh: true, isGage: true, isReward: true });
+    buzz([60, 60, 60, 60, 200]); save(); renderAll();
+  }
+  function renderThermo() {
+    var t = Math.round(S.temp);
+    $("tube").style.setProperty("--cover", (100 - t) + "%");
+    $("tube").style.setProperty("--t", t);
+    $("thermo-val").textContent = t + "°";
+    $("thermo").setAttribute("aria-valuenow", t);
+    $("thermo").style.setProperty("--tc", "var(--" + tempLevel() + ")");
+    $("thermo-help").textContent = t >= 100 ? "100° atteints ! Profitez de votre récompense, la jauge repart à zéro au prochain tirage."
+      : "Chaque carte réalisée fait monter la température" + (S.level === "thermo" ? " et les cartes chauffent" : "") + ". À 100° : récompense.";
+  }
+
+  // Qui joue : celui qui a eu le moins de cartes, au hasard en cas d'égalité.
+  function pickPlayer() {
+    var n = S.stats.map(function (s) { return s.v + s.a + s.c; });
+    if (n[0] === n[1]) return Math.random() < .5 ? 0 : 1;
+    return n[0] < n[1] ? 0 : 1;
+  }
+
+  // ---------- Affichage ----------
+  var $ = function (id) { return document.getElementById(id); };
+  var KIND = {
+    verite: { label: "Vérité", color: "var(--accent)", mark: "V" },
+    action: { label: "Action", color: "var(--medium)", mark: "A" },
+    coeur: { label: "Cœur ouvert", color: "var(--coeur)", mark: "♥" },
+    "gage-verite": { label: "Gage", color: "var(--hot)", mark: "!" },
+    "gage-action": { label: "Gage", color: "var(--hot)", mark: "!" },
+    "gage-coeur": { label: "Gage doux", color: "var(--coeur)", mark: "♡" },
+    recompense: { label: "Récompense", color: "var(--gold)", mark: "★" }
+  };
+  var current = { jeu: null, coeur: null };
+  var timer = null;
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (ch) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]; }); }
+
+  function renderCard(where) {
+    var el = $("card-" + where);
+    var cur = current[where];
+    stopTimer();
+    el.classList.remove("flip", "ring");
+    if (!cur) {
+      el.className = "card empty";
+      el.style.setProperty("--kind", where === "coeur" ? "var(--coeur)" : "var(--accent)");
+      el.innerHTML = where === "jeu"
+        ? '<div class="meta"><span>Prêts ?</span></div><div class="text">Tirez une carte. La première vérité est souvent la plus drôle.</div>'
+        : '<div class="meta"><span>Cœur ouvert</span></div><div class="text">Installez-vous, rangez les téléphones, et tirez la première carte quand vous êtes prêts.</div>';
+      $("pass-" + where).disabled = true;
+      if (where === "jeu") $("done-jeu").disabled = true;
+      return;
+    }
+    var c = cur.card, k = KIND[c.kind];
+    var tag = c.level ? LEVEL_LABEL[c.level] : (c.axe || "");
+    if (S.level === "thermo" && c.level && where === "jeu" && c.kind.indexOf("gage") !== 0) tag = "🌡 " + tag;
+    var isGage = c.kind.indexOf("gage") === 0 || c.kind === "recompense";
+    var tools = isGage ? "" : '<div class="tools"><button type="button" data-fav aria-pressed="' + (S.fav.indexOf(c.id) !== -1) + '">♥ J\'adore</button>' +
+      '<button type="button" data-ban>🚫 Plus jamais</button></div>';
+    var verb = c.kind === "verite" ? "répond" : c.kind === "action" ? "s'y colle" : c.kind === "recompense" ? "lance la récompense" : c.kind.indexOf("gage") === 0 ? "fait le gage" : "commence";
+    el.className = "card" + (c.level === "hot" ? " hotcard" : "") + (c.kind === "recompense" ? " reward" : "");
+    el.style.setProperty("--kind", k.color);
+    el.innerHTML =
+      '<span class="mark" aria-hidden="true">' + k.mark + '</span>' +
+      '<div class="meta"><span class="kind">' + k.label + (c.music ? '<span class="music">· 🎤 Musique</span>' : "") + (c.perso ? " · perso" : "") + '</span>' + (tag ? '<span class="pill">' + esc(tag) + '</span>' : "") + '</div>' +
+      '<div class="text">' + esc(c.text) + '</div>' +
+      (c.t ? '<div class="timer"><button type="button" id="t-' + where + '">⏱ Lancer ' + c.t + ' s</button><div class="bar"><i></i></div><span class="left">' + c.t + '</span></div>' : "") +
+      '<div class="who"><span><span class="name" style="--pc: var(--p' + cur.player + ')"><i></i>' + esc(S.names[cur.player]) + '</span> ' + verb + '</span><span>' + (cur.done ? "✓ réalisé" : c.kind === "recompense" ? "🏆 100°" : cur.again ? "♥ coup de cœur" : cur.left === 0 ? "dernière du paquet" : cur.left + " restantes") + '</span></div>' +
+      tools + '<span class="swipe-tag l">Je passe</span><span class="swipe-tag r">Suivante</span>';
+    if (cur.fresh) {
+      cur.fresh = false;
+      if (c.kind !== "recompense") { void el.offsetWidth; el.classList.add(isGage ? "shake" : "flip"); }
+      burst(c.kind === "recompense" ? "recompense" : isGage ? "gage" : c.music ? "music" : c.kind, c.level, el);
+    }
+    if (c.t) $("t-" + where).onclick = function () { startTimer(el, c.t, this); };
+    $("pass-" + where).disabled = !!cur.isGage || !!cur.done;
+    if (where === "jeu") $("done-jeu").disabled = !!cur.isGage || !!cur.done;
+  }
+
+  function startTimer(el, secs, btn) {
+    stopTimer();
+    var end = Date.now() + secs * 1000, bar = el.querySelector(".bar i"), left = el.querySelector(".left");
+    btn.textContent = "⏹ Stop";
+    btn.onclick = function () { stopTimer(); btn.textContent = "⏱ Relancer"; btn.onclick = function () { startTimer(el, secs, btn); }; };
+    timer = setInterval(function () {
+      var ms = Math.max(0, end - Date.now());
+      bar.style.transform = "scaleX(" + ms / (secs * 1000) + ")";
+      left.textContent = Math.ceil(ms / 1000);
+      if (!ms) {
+        stopTimer(); btn.textContent = "✓ Terminé"; el.classList.add("ring");
+        try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) {}
+        btn.onclick = function () { startTimer(el, secs, btn); };
+      }
+    }, 100);
+  }
+  function stopTimer() { if (timer) { clearInterval(timer); timer = null; } }
+
+  // ---------- Actions de jeu ----------
+  function play(kind) {
+    if (current.jeu && current.jeu.isReward) S.temp = 0;
+    var lv = lvl();
+    var res = draw(kind, function (c) { return lv === "all" || c.level === lv; }, kind + "|" + lv + "|" + S.ctx);
+    if (!res) return;
+    var p = pickPlayer();
+    S.stats[p][kind === "verite" ? "v" : "a"]++;
+    S.rounds++;
+    S.recent = S.recent.concat("ok").slice(-8);
+    current.jeu = Object.assign(res, { player: p, fresh: true });
+    buzz(12); save(); renderAll(); smartTip();
+  }
+
+  function playCoeur() {
+    var axe = S.axe;
+    var res = draw("coeur", function (c) { return axe === "Tout" || c.axe === axe; }, "coeur|" + axe + "|" + S.ctx);
+    if (!res) return;
+    var p = pickPlayer();
+    S.stats[p].c++;
+    current.coeur = Object.assign(res, { player: p, fresh: true });
+    buzz(12); save(); renderAll();
+  }
+
+  // Le gage suit la carte esquivée : même type, même intensité, même contexte.
+  function pass(where) {
+    var cur = current[where];
+    if (!cur || cur.isGage) return;
+    var c = cur.card, res;
+    if (c.kind === "coeur") {
+      res = draw("gage-coeur", function () { return true; }, "gage-coeur|" + S.ctx);
+    } else {
+      var lv = c.level || "soft";
+      res = draw("gage-" + c.kind, function (g) { return g.level === lv; }, "gage-" + c.kind + "|" + lv + "|" + S.ctx);
+    }
+    if (!res) return;
+    S.stats[cur.player].g++;
+    if (where === "jeu") { S.recent = S.recent.slice(0, -1).concat("pass"); heat(-6); }
+    current[where] = Object.assign(res, { player: cur.player, isGage: true, fresh: true });
+    buzz([30, 40, 30]); save(); renderAll(); if (where === "jeu") smartTip();
+  }
+
+  // ---------- Le tirage qui s'adapte ----------
+  // Beaucoup de cartes esquivées : on propose de redescendre. Aucune esquivée : on propose de monter.
+  var ORDER = ["soft", "medium", "hot"];
+  function smartTip() {
+    if (S.level === "all" || S.level === "thermo") return;
+    var r = S.recent, i = ORDER.indexOf(S.level);
+    var passes = r.slice(-4).filter(function (x) { return x === "pass"; }).length;
+    if (passes >= 2 && i > 0) {
+      toast("Ça chauffe un peu trop ? On redescend d'un cran.", "Passer en " + LEVEL_LABEL[ORDER[i - 1]], ORDER[i - 1]);
+    } else if (r.length >= 8 && passes === 0 && r.indexOf("pass") === -1 && i < 2) {
+      toast("8 cartes sans esquiver une seule fois 😏 On monte ?", "Passer en " + LEVEL_LABEL[ORDER[i + 1]], ORDER[i + 1]);
+    }
+  }
+  var toastTimer = null;
+  function toast(text, label, level) {
+    $("toast-text").textContent = text;
+    $("toast-go").textContent = label;
+    $("toast-go").onclick = function () { S.level = level; S.recent = []; hideToast(); save(); renderAll(); };
+    $("toast").hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, 7000);
+  }
+  function hideToast() { $("toast").hidden = true; }
+
+  function buzz(pattern) { try { navigator.vibrate && navigator.vibrate(pattern); } catch (e) {} }
+
+  // ---------- Animations par catégorie ----------
+  // Vérité : flammes qui montent. Action : étincelles qui explosent. Cœur ouvert : cœurs qui flottent.
+  // Gage : petits diables qui tombent. En Hot, des bisous et des cœurs en feu en plus.
+  var FX = {
+    verite: { emo: ["🔥", "✨", "🔥"], n: 10, mode: "rise" },
+    action: { emo: ["⚡", "💥", "✨", "🎉"], n: 12, mode: "pop" },
+    coeur: { emo: ["💜", "🤍", "🫶"], n: 9, mode: "float" },
+    gage: { emo: ["😈", "🙈", "😏"], n: 10, mode: "fall" },
+    music: { emo: ["🎵", "🎶", "🎤", "🎧"], n: 10, mode: "float" },
+    recompense: { emo: ["🏆", "💖", "✨", "🎁", "💞", "🥂"], n: 40, mode: "pop" }
+  };
+  var HOT_EMO = ["💋", "❤️‍🔥", "🌹", "💞"];
+  var canvas = $("fx"), ctx = canvas.getContext("2d"), parts = [], raf = null;
+  var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function resize() { var d = window.devicePixelRatio || 1; canvas.width = innerWidth * d; canvas.height = innerHeight * d; ctx.setTransform(d, 0, 0, d, 0, 0); }
+  window.addEventListener("resize", resize); resize();
+  function burst(kind, level, el) {
+    if (reduced) return;
+    parts = parts.slice(-30);
+    var cfg = FX[kind] || FX.verite, r = el.getBoundingClientRect();
+    var emo = level === "hot" ? cfg.emo.concat(HOT_EMO, HOT_EMO) : cfg.emo;
+
+    // Les effets partent du bord de la carte et s'en éloignent, pour ne jamais cacher la question.
+    // Seule la récompense explose depuis le centre.
+    for (var i = 0; i < cfg.n; i++) {
+      var x, y, nx = 0, ny = -1, side = Math.floor(Math.random() * 4), u = Math.random();
+      if (kind === "recompense") { x = r.left + r.width / 2; y = r.top + r.height / 2; var a0 = Math.random() * Math.PI * 2; nx = Math.cos(a0); ny = Math.sin(a0); }
+      else if (cfg.mode === "fall") { x = r.left + u * r.width; y = r.top - 10; ny = 1; }
+      else if (side === 0) { x = r.left + u * r.width; y = r.top; nx = (u - .5) * .6; ny = -1; }
+      else if (side === 1) { x = r.left; y = r.top + u * r.height; nx = -1; ny = -.3; }
+      else if (side === 2) { x = r.right; y = r.top + u * r.height; nx = 1; ny = -.3; }
+      else { x = r.left + u * r.width; y = r.top; nx = (u - .5) * .6; ny = -1; }
+      var sp = cfg.mode === "pop" ? 3 + Math.random() * 4 : 1 + Math.random() * 1.8;
+      parts.push({
+        x: x, y: y, vx: nx * sp, vy: ny * sp - (cfg.mode === "pop" ? 1 : 0),
+        g: cfg.mode === "pop" ? .14 : cfg.mode === "fall" ? .08 : -.01,
+        life: 1, decay: .012 + Math.random() * .01, size: 14 + Math.random() * 12,
+        rot: (Math.random() - .5) * .6, wob: Math.random() * 6, mode: cfg.mode,
+        emo: emo[Math.floor(Math.random() * emo.length)]
+      });
+    }
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function tick() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    parts = parts.filter(function (p) { return p.life > 0; });
+    parts.forEach(function (p) {
+      p.vy += p.g; p.x += p.vx + (p.mode === "float" ? Math.sin(p.wob += .06) * .8 : 0); p.y += p.vy; p.life -= p.decay;
+      ctx.save(); ctx.globalAlpha = Math.max(0, Math.min(1, p.life * 1.6));
+      ctx.translate(p.x, p.y); ctx.rotate(p.rot * (1 - p.life));
+      ctx.font = p.size + "px system-ui, 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif";
+      ctx.textAlign = "center"; ctx.fillText(p.emo, 0, 0); ctx.restore();
+    });
+    raf = parts.length ? requestAnimationFrame(tick) : null;
+    if (!raf) ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // ---------- Glisser la carte ----------
+  ["jeu", "coeur"].forEach(function (where) {
+    var el = $("card-" + where), x0 = null, dx = 0;
+    el.addEventListener("pointerdown", function (e) {
+      if (!current[where] || e.target.closest("button")) return;
+      x0 = e.clientX; dx = 0; el.classList.add("dragging"); el.setPointerCapture(e.pointerId);
+    });
+    el.addEventListener("pointermove", function (e) {
+      if (x0 === null) return;
+      dx = e.clientX - x0;
+      el.style.transform = "translateX(" + dx + "px) rotate(" + dx / 20 + "deg)";
+      var l = el.querySelector(".swipe-tag.l"), r = el.querySelector(".swipe-tag.r");
+      if (l) l.style.opacity = Math.min(1, Math.max(0, -dx / 90));
+      if (r) r.style.opacity = Math.min(1, Math.max(0, dx / 90));
+    });
+    function end() {
+      if (x0 === null) return;
+      x0 = null; el.classList.remove("dragging"); el.style.transform = "";
+      if (dx > 90) {
+        if (where === "jeu") { if (!(done() && current.jeu.isReward)) play(Math.random() < .5 ? "verite" : "action"); }
+        else playCoeur();
+      }
+      else if (dx < -90) { if (current[where] && !current[where].isGage) pass(where); }
+      else el.querySelectorAll(".swipe-tag").forEach(function (t) { t.style.opacity = 0; });
+    }
+    el.addEventListener("pointerup", end);
+    el.addEventListener("pointercancel", end);
+    // ♥ et 🚫 sur la carte
+    el.addEventListener("click", function (e) {
+      var cur = current[where]; if (!cur) return;
+      var id = cur.card.id;
+      if (e.target.closest("[data-fav]")) {
+        var i = S.fav.indexOf(id);
+        if (i === -1) S.fav.push(id); else S.fav.splice(i, 1);
+        e.target.closest("[data-fav]").setAttribute("aria-pressed", i === -1);
+        if (i === -1) burst("coeur", cur.card.level, el);
+        save();
+      } else if (e.target.closest("[data-ban]")) {
+        S.ban.push(id); save();
+        where === "jeu" ? play(cur.card.kind) : playCoeur();
+      }
+    });
+  });
+
+  // ---------- Garder l'écran allumé pendant la partie ----------
+  var lock = null;
+  function keepAwake() {
+    try { if (navigator.wakeLock && !lock) navigator.wakeLock.request("screen").then(function (l) { lock = l; l.addEventListener("release", function () { lock = null; }); }).catch(function () {}); } catch (e) {}
+  }
+  document.addEventListener("click", keepAwake);
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") keepAwake(); });
+
+  // ---------- Récap ----------
+  function renderRecap() {
+    var html = "";
+    S.stats.forEach(function (s, i) {
+      html += '<div class="stat p' + i + '"><h3>' + esc(S.names[i]) + '</h3><dl>' +
+        '<dt>Vérités</dt><dd>' + s.v + '</dd><dt>Actions</dt><dd>' + s.a + '</dd>' +
+        '<dt>Cœur ouvert</dt><dd>' + s.c + '</dd><dt>Gages</dt><dd>' + s.g + '</dd></dl></div>';
+    });
+    $("stats").innerHTML = html;
+    var g = S.stats.map(function (s) { return s.g; });
+    var v;
+    if (!S.rounds && !S.stats[0].c && !S.stats[1].c) v = "Aucune carte tirée pour l'instant.";
+    else if (g[0] === g[1]) v = g[0] ? "Égalité parfaite : " + g[0] + " gage" + (g[0] > 1 ? "s" : "") + " chacun 😏" : "Aucune carte esquivée. Respect.";
+    else { var i = g[0] > g[1] ? 0 : 1; v = S.names[i] + " a esquivé " + g[i] + " carte" + (g[i] > 1 ? "s" : "") + " 😏"; }
+    $("verdict").textContent = v;
+    var n = 0; Object.keys(S.seen).forEach(function (k) { n += S.seen[k].length; });
+    $("seen-info").textContent = n + " cartes déjà vues sont mises de côté jusqu'à ce que leur paquet soit épuisé.";
+  }
+
+  // ---------- Mes cartes ----------
+  function renderPerso() {
+    var lab = { verite: "Vérité", action: "Action", coeur: "Cœur ouvert" }, ctx = { "": "partout", E: "ensemble", A: "en appel" };
+    $("perso-list").innerHTML = S.custom.length ? S.custom.slice().reverse().map(function (c) {
+      return '<li><p>' + esc(c.text) + '<small>' + lab[c.type] + (c.type !== "coeur" ? " · " + LEVEL_LABEL[c.level] : "") + " · " + ctx[c.ctx] + '</small></p>' +
+        '<button type="button" data-del="' + c.id + '" aria-label="Supprimer">✕</button></li>';
+    }).join("") : '<li><p>Pas encore de carte perso. Ajoutez vos blagues, vos souvenirs, vos défis à vous.</p></li>';
+    var byId = {}; allCards().forEach(function (c) { byId[c.id] = c; });
+    function item(id, attr, label) {
+      var c = byId[id]; if (!c) return "";
+      return '<li><p>' + esc(c.text) + '<small>' + KIND[c.kind].label + (c.level ? " · " + LEVEL_LABEL[c.level] : "") + '</small></p>' +
+        '<button type="button" ' + attr + '="' + esc(id) + '" aria-label="' + label + '">✕</button></li>';
+    }
+    $("fav-list").innerHTML = S.fav.map(function (id) { return item(id, "data-unfav", "Retirer des coups de cœur"); }).join("") ||
+      '<li><p>Touchez ♥ J\'adore sur une carte pour la retrouver ici.</p></li>';
+    $("ban-list").innerHTML = S.ban.map(function (id) { return item(id, "data-unban", "Remettre dans le jeu"); }).join("") ||
+      '<li><p>Aucune. Les cartes marquées 🚫 ne sortiront plus.</p></li>';
+  }
+
+  // ---------- Rendu global ----------
+  function renderAll() {
+    $("p0").value = S.names[0]; $("p1").value = S.names[1];
+    $("i0").textContent = (S.names[0] || "1").charAt(0).toUpperCase(); $("i1").textContent = (S.names[1] || "2").charAt(0).toUpperCase();
+    $("rounds").textContent = "Manche " + S.rounds;
+    document.querySelectorAll("#ctx button").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.v === S.ctx); });
+    document.querySelectorAll("#level button").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.v === S.level); });
+    $("level").hidden = S.tab !== "jeu";
+    var mood = "";
+    if (S.tab === "coeur") mood = "coeur";
+    else if (S.tab === "jeu") mood = current.jeu && current.jeu.card.level ? current.jeu.card.level : (S.level === "all" ? "" : S.level === "thermo" ? tempLevel() : S.level);
+    document.documentElement.setAttribute("data-mood", mood);
+    var meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.content = mood === "hot" ? "#24070f" : "#2a1420";
+    ["jeu", "coeur", "perso", "recap"].forEach(function (t) { $("tab-" + t).hidden = S.tab !== t; });
+    document.querySelectorAll("nav.tabs button").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.tab === S.tab); });
+    var axes = ["Tout"].concat(Object.keys(DATA.coeur));
+    if (S.custom.some(function (c) { return c.type === "coeur"; })) axes.push("Nos cartes");
+    $("axes").innerHTML = axes.map(function (a) { return '<button type="button" data-axe="' + esc(a) + '" aria-pressed="' + (a === S.axe) + '">' + esc(a) + '</button>'; }).join("");
+    if (S.tab === "jeu") { renderCard("jeu"); renderThermo(); }
+    if (S.tab === "coeur") renderCard("coeur");
+    if (S.tab === "recap") renderRecap();
+    if (S.tab === "perso") renderPerso();
+  }
+
+  // ---------- Branchements ----------
+  [0, 1].forEach(function (i) {
+    $("p" + i).addEventListener("change", function () { S.names[i] = this.value.trim() || "Joueur " + (i + 1); save(); renderAll(); });
+  });
+  $("ctx").addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) { S.ctx = b.dataset.v; save(); renderAll(); } });
+  $("level").addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) { S.level = b.dataset.v; S.recent = []; hideToast(); save(); renderAll(); } });
+  $("axes").addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) { S.axe = b.dataset.axe; save(); renderAll(); } });
+  document.querySelector("nav.tabs").addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) { S.tab = b.dataset.tab; save(); renderAll(); window.scrollTo(0, 0); } });
+  $("btn-v").onclick = function () { play("verite"); };
+  $("btn-a").onclick = function () { play("action"); };
+  function roll(b) { b.classList.remove("roll"); void b.offsetWidth; b.classList.add("roll"); }
+  $("btn-r").onclick = function () { roll(this); play(Math.random() < .5 ? "verite" : "action"); };
+  $("btn-c").onclick = function () { roll(this); playCoeur(); };
+  $("done-jeu").onclick = function () { done(); };
+  $("pass-jeu").onclick = function () { pass("jeu"); };
+  $("pass-coeur").onclick = function () { pass("coeur"); };
+  $("c-type").addEventListener("change", function () { $("c-level").disabled = this.value === "coeur"; });
+  $("add-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var text = $("c-text").value.trim();
+    if (!text) return;
+    S.custom.push({ id: Date.now().toString(36), text: text, type: $("c-type").value, level: $("c-level").value, ctx: $("c-ctx").value });
+    $("c-text").value = "";
+    save(); renderAll();
+  });
+  $("perso-list").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-del]");
+    if (!b) return;
+    S.custom = S.custom.filter(function (c) { return c.id !== b.dataset.del; });
+    save(); renderAll();
+  });
+  $("tab-perso").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-unfav], button[data-unban]");
+    if (!b) return;
+    if (b.dataset.unfav) S.fav = S.fav.filter(function (id) { return id !== b.dataset.unfav; });
+    if (b.dataset.unban) S.ban = S.ban.filter(function (id) { return id !== b.dataset.unban; });
+    save(); renderAll();
+  });
+  $("toast-x").onclick = hideToast;
+  $("reset-game").onclick = function () { $("reset-confirm").hidden = false; this.hidden = true; };
+  $("reset-no").onclick = function () { $("reset-confirm").hidden = true; $("reset-game").hidden = false; };
+  $("reset-yes").onclick = function () {
+    S.rounds = 0; S.temp = 0; S.recent = []; S.stats = [{ v: 0, a: 0, c: 0, g: 0 }, { v: 0, a: 0, c: 0, g: 0 }];
+    current = { jeu: null, coeur: null };
+    $("reset-confirm").hidden = true; $("reset-game").hidden = false;
+    save(); renderAll();
+  };
+  $("reset-seen").onclick = function () { S.seen = {}; save(); renderAll(); };
+
+  renderAll();
+})();
+</script>
