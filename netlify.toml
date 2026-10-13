@@ -1,4 +1,4 @@
-# Le site est déjà construit dans dist/ : Netlify n'a qu'à le publier, sans étape de build.
+# Le site est la racine du dépôt (index.html déjà construit) : rien à compiler.
 [build]
   command = ""
-  publish = "dist"
+  publish = "."

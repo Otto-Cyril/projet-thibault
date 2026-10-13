@@ -8,14 +8,10 @@ head, body = app.split("</style>", 1)
 page = ('<!doctype html>\n<html lang="fr">\n<head>\n<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
         + head + "</style>\n</head>\n<body>" + body + "</body>\n</html>\n")
-(root / "dist").mkdir(exist_ok=True)
-(root / "dist/index.html").write_text(page, encoding="utf-8")  # page d'accueil du site en ligne
-import shutil
-for f in (root / "public").glob("*"):
-    shutil.copy(f, root / "dist" / f.name)
+(root / "index.html").write_text(page, encoding="utf-8")  # la page du site, à la racine du dépôt
 if len(sys.argv) > 1:  # version sans squelette, pour une page publiée
     pathlib.Path(sys.argv[1]).write_text(app, encoding="utf-8")
 n = sum(len(v) for k in ("verites", "actions") for v in cartes[k].values())
 g = sum(len(v) for k in ("verite", "action") for v in cartes["gages"][k].values()) + len(cartes["gages"]["coeur"])
 c = sum(len(v) for v in cartes["coeur"].values())
-print(f"{n} vérités/actions, {g} gages, {c} cartes cœur ouvert -> dist/index.html")
+print(f"{n} vérités/actions, {g} gages, {c} cartes cœur ouvert -> index.html")

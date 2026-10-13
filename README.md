@@ -4,10 +4,10 @@ Jeu de cartes pour couple : vérités, actions, gages et « Cœur ouvert ».
 
 ## Fichiers
 
-- `dist/` : généré par `python3 build.py` (index.html + icônes). Netlify le construit tout seul à chaque push.
+- `index.html` : l'appli complète, générée par `python3 build.py`. C'est la page publiée par Netlify (avec `manifest.webmanifest` et les icônes).
 - `src/cartes.json` : toutes les cartes. Pour en ajouter, on édite ce fichier puis on relance le build.
 - `src/app.html` : l'interface et la logique (HTML, CSS, JavaScript sans framework).
-- `build.py` : assemble les deux fichiers de `src/` dans `dist/`. Lancer `python3 build.py`.
+- `build.py` : assemble les deux fichiers de `src/` dans `index.html`. Lancer `python3 build.py` après chaque modification des cartes.
 
 ## Format des cartes
 
@@ -26,7 +26,7 @@ Jeu de cartes pour couple : vérités, actions, gages et « Cœur ouvert ».
 
 - Ambiance qui change selon l'intensité : lueur verte en Soft, ambrée en Medium, violette en Cœur ouvert, et tout l'écran passe en rouge nuit en Hot.
 - Animations par catégorie : flammes pour les vérités, étincelles pour les actions, cœurs pour Cœur ouvert, petits diables pour les gages, bisous et roses en plus en Hot.
-- Mode Crescendo : 6 cartes Soft, puis 8 Medium, puis Hot.
+- Mode Crescendo (remplacé en version 4 par la jauge « 🌡 Auto »).
 - Tirage qui s'adapte : 2 esquives sur les 4 dernières cartes proposent de redescendre, 8 cartes sans esquive proposent de monter.
 - ♥ J'adore (la carte revient plus souvent) et 🚫 Plus jamais (la carte sort du jeu), gérables dans « Mes cartes ».
 - Glisser la carte : à droite pour une nouvelle carte, à gauche pour passer. Vibration au tirage, écran gardé allumé pendant la partie.
@@ -40,5 +40,5 @@ Jeu de cartes pour couple : vérités, actions, gages et « Cœur ouvert ».
 
 ## Pistes pour la suite
 
-1. Héberger le dossier `dist/` sur GitHub Pages pour avoir un vrai lien sans connexion, puis ajouter un manifest et un service worker pour l'installer comme une appli (PWA).
+1. Ajouter un service worker pour que l'appli marche hors connexion une fois installée.
 2. Sortir les cartes dans une API Symfony (entités `Carte`, `Couple`, `Partie`) avec un front Angular, pour jouer chacun sur son téléphone et partager les cartes perso.
