@@ -415,7 +415,7 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
   try { S = Object.assign({}, defaults, JSON.parse(localStorage.getItem(KEY) || "{}")); }
   catch (e) { S = Object.assign({}, defaults); }
   if (S.level === "crescendo") S.level = "thermo";
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} if (typeof duoSend === "function") duoSend(); }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); sessionStorage.setItem(KEY + "-cur", JSON.stringify(current)); } catch (e) {} if (typeof duoSend === "function") duoSend(); }
 
   // ---------- Lecture d'une carte : "@E texte #20" ----------
   function parse(raw, extra) {
@@ -558,6 +558,8 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
     recompense: { label: "Récompense", color: "var(--gold)", mark: "★" }
   };
   var current = { jeu: null, coeur: null };
+  // La carte à l'écran survit à un rechargement (mise à jour de l'appli) dans le même onglet.
+  try { var kept = JSON.parse(sessionStorage.getItem(KEY + "-cur") || "null"); if (kept) { current = kept; ["jeu", "coeur"].forEach(function (w) { if (current[w]) current[w].fresh = false; }); } } catch (e) {}
   var timer = null;
 
   function esc(s) { return String(s).replace(/[&<>"]/g, function (ch) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]; }); }
@@ -1108,6 +1110,30 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
     else if (a === "share") shareCode();
     else if (a === "stop") stopDuo();
   });
+
+  // ---------- Mises à jour sans actualiser ----------
+  // build.py écrit version.json à chaque publication. Au retour dans l'appli, si une nouvelle version est en ligne,
+  // on recharge tout seul : la partie, la jauge, la carte en cours et la partie à deux sont gardées.
+  // Pendant qu'on joue, on ne coupe rien : un petit message propose la mise à jour.
+  var VERSION = "6012f721c587", checking = false, checkedAt = 0;
+  function checkUpdate(quiet) {
+    if (checking || VERSION.indexOf("*") !== -1 || !window.fetch || location.protocol === "file:") return;
+    checking = true; checkedAt = Date.now();
+    fetch("version.json?t=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.json() : null; }).then(function (v) {
+      checking = false;
+      if (!v || !v.v || v.v === VERSION) return;
+      // Une seule tentative par version, pour ne jamais boucler si la page en cache est encore l'ancienne.
+      try { if (sessionStorage.getItem(KEY + "-maj") === v.v) return; sessionStorage.setItem(KEY + "-maj", v.v); } catch (e) {}
+      if (quiet) { save(); location.reload(); return; }
+      $("toast-text").textContent = "Nouvelle version de l'appli ✨";
+      $("toast-go").textContent = "Mettre à jour";
+      $("toast-go").onclick = function () { save(); location.reload(); };
+      $("toast").hidden = false;
+    }).catch(function () { checking = false; });
+  }
+  document.addEventListener("visibilitychange", function () { if (document.visibilityState === "visible") checkUpdate(true); });
+  setInterval(function () { if (document.visibilityState === "visible" && Date.now() - checkedAt > 5 * 60000) checkUpdate(false); }, 60000);
+  setTimeout(function () { checkUpdate(true); }, 3000);
 
   renderAll();
   renderDuo();

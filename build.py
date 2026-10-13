@@ -16,7 +16,12 @@ page = ('<!doctype html>\n<html lang="fr">\n<head>\n<meta charset="utf-8">\n'
 import shutil
 dist = root / "dist"
 dist.mkdir(exist_ok=True)
+# Empreinte de la page : l'appli la compare à dist/version.json pour se mettre à jour toute seule.
+import hashlib
+version = hashlib.sha256(page.encode("utf-8")).hexdigest()[:12]
+page = page.replace("/*VERSION*/", version)
 (dist / "index.html").write_text(page, encoding="utf-8")
+(dist / "version.json").write_text(json.dumps({"v": version}) + "\n", encoding="utf-8")
 for name in ("manifest.webmanifest", "icon.svg", "icon-180.png", "icon-512.png"):
     shutil.copy(root / "assets" / name, dist / name)
 shutil.copytree(root / "assets/vendor", dist / "vendor", dirs_exist_ok=True)  # supabase-js, chargé seulement en mode deux téléphones

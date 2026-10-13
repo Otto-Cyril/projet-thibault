@@ -49,3 +49,7 @@ Jeu de cartes pour couple : vérités, actions, gages et « Cœur ouvert ».
 
 1. Ajouter un service worker pour que l'appli marche hors connexion une fois installée.
 2. Sortir les cartes dans une API Symfony (entités `Carte`, `Couple`, `Partie`) avec un front Angular, pour jouer chacun sur son téléphone et partager les cartes perso.
+
+## Mises à jour automatiques
+
+`build.py` écrit l'empreinte de la page dans `dist/version.json`. Quand on revient dans l'appli, elle compare cette empreinte à la sienne et se recharge toute seule si une nouvelle version est en ligne ; la partie, la jauge, la carte en cours et la partie à deux sont gardées. Pendant qu'on joue, un petit message « Mettre à jour » s'affiche au lieu de couper la partie.
