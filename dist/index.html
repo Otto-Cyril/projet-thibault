@@ -912,8 +912,8 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
   // Un téléphone crée une partie et obtient un code, l'autre le tape. Ensuite, à chaque changement
   // (carte tirée, jauge, gage, prénoms, réglages), le téléphone qui a joué envoie l'état de la partie
   // à l'autre via Supabase Realtime (Broadcast, sans base de données). Les favoris restent propres à chaque téléphone.
-  var SUPABASE_URL = "";
-  var SUPABASE_KEY = "";
+  var SUPABASE_URL = "https://hxfarkiypngsrshzxlyd.supabase.co";
+  var SUPABASE_KEY = "sb_publishable_bzYs7hfp4MQwk6vYAc33AA_GwbyoFob";
   var SHARED = ["names", "ctx", "level", "temp", "rounds", "stats", "seen", "custom", "recent", "axe"];
   var duo = { on: false, code: "", me: 0, peers: 0, ch: null, open: false, err: "", applying: false, rev: 0, id: Math.random().toString(36).slice(2) };
   var configured = SUPABASE_URL.indexOf("supabase.co") !== -1 || location.hash === "#local";

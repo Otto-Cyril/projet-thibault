@@ -39,6 +39,10 @@ Jeu de cartes pour couple : vérités, actions, gages et « Cœur ouvert ».
 - Cartes musique love et R&B (Tayc, Dadju, Chris Brown, The Weeknd, SZA, Beyoncé…), avec duos à chanter.
 - Public visé : 18-27 ans.
 
+## Jouer sur deux téléphones
+
+« 📱📱 Jouer à deux » : un téléphone crée une partie (code de 5 caractères), l'autre le tape. L'état de la partie (carte, jauge, scores, prénoms, réglages) est envoyé à l'autre téléphone à chaque action via Supabase Realtime Broadcast, sans table ni base de données. Les clés **publiques** sont dans `src/config.json`. Pour tester sans Supabase, ouvrir deux onglets avec `#local` à la fin de l'URL.
+
 ## Pistes pour la suite
 
 1. Ajouter un service worker pour que l'appli marche hors connexion une fois installée.
