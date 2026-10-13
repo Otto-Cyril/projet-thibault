@@ -4,10 +4,11 @@ Jeu de cartes pour couple : vérités, actions, gages et « Cœur ouvert ».
 
 ## Fichiers
 
-- `index.html` : l'appli complète, générée par `python3 build.py`. C'est la page publiée par Netlify (avec `manifest.webmanifest` et les icônes).
+- `dist/` : le site publié par Netlify (`index.html`, manifest, icônes), généré par `python3 build.py`.
+- `assets/` : manifest et icônes de l'appli.
 - `src/cartes.json` : toutes les cartes. Pour en ajouter, on édite ce fichier puis on relance le build.
 - `src/app.html` : l'interface et la logique (HTML, CSS, JavaScript sans framework).
-- `build.py` : assemble les deux fichiers de `src/` dans `index.html`. Lancer `python3 build.py` après chaque modification des cartes.
+- `build.py` : assemble `src/` et `assets/` dans `dist/`. Lancer `python3 build.py` après chaque modification des cartes.
 
 ## Format des cartes
 

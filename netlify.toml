@@ -1,4 +1,5 @@
-# Le site est la racine du dépôt (index.html déjà construit) : rien à compiler.
+# Mêmes réglages que dans l'interface Netlify : on construit avec build.py, on publie dist/.
+# dist/ est aussi versionné, pour que le site marche même si la commande de build ne tourne pas.
 [build]
-  command = ""
-  publish = "."
+  command = "python3 build.py"
+  publish = "dist"
