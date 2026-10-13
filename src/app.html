@@ -947,8 +947,10 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
 
   // Transport : Supabase Realtime en vrai, BroadcastChannel entre onglets pour tester en local (#local).
   // Sur téléphone, le système coupe la connexion dès qu'on passe sur une autre appli (pour envoyer le code
-  // par exemple). On rouvre donc un canal neuf au retour au premier plan, et on réessaie tout seul en cas d'échec.
-  var client = null, link = null, retryTimer = null, tries = 0;
+  // par exemple). On rouvre donc une connexion neuve au retour au premier plan, et on réessaie tout seul en cas d'échec.
+  // Chaque tentative a son propre client Supabase : réutiliser l'ancien redonnerait le canal mort
+  // (client.channel() renvoie le canal existant du même nom tant que sa fermeture n'a pas abouti).
+  var link = null, retryTimer = null, tries = 0;
   function connect() {
     disconnect();
     if (!duo.on) return;
@@ -969,9 +971,10 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
     loadSupabase(function (err) {
       if (link !== mine) return;
       if (err) { lost(mine); return; }
-      if (!client) client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      var client = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
       var ch = client.channel(name, { config: { broadcast: { self: false }, presence: { key: duo.id } } });
-      mine.close = function () { client.removeChannel(ch); };
+      // On coupe la socket directement, sans attendre une désinscription qui ne répondrait jamais sur une connexion morte.
+      mine.close = function () { try { client.realtime.disconnect(); } catch (e) {} };
       ch.on("broadcast", { event: "msg" }, function (e) { onMsg(e.payload); });
       ch.on("presence", { event: "sync" }, function () {
         if (link !== mine) return;
@@ -983,7 +986,7 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
       ch.subscribe(function (status) {
         if (link !== mine) return;
         if (status === "SUBSCRIBED") {
-          ch.track({ at: Date.now() });
+          ch.track({ at: Date.now() }).catch(function () {});
           ready(mine, function (m) { ch.send({ type: "broadcast", event: "msg", payload: m }); });
         } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
           lost(mine);
