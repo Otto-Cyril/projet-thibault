@@ -29,7 +29,6 @@ Jeu de cartes pour couple : vérités, actions, gages et « Cœur ouvert ».
 - Animations par catégorie : flammes pour les vérités, étincelles pour les actions, cœurs pour Cœur ouvert, petits diables pour les gages, bisous et roses en plus en Hot.
 - Mode Crescendo (remplacé en version 4 par la jauge « 🌡 Auto »).
 - Tirage qui s'adapte : 2 esquives sur les 4 dernières cartes proposent de redescendre, 8 cartes sans esquive proposent de monter.
-- ♥ J'adore (la carte revient plus souvent) et 🚫 Plus jamais (la carte sort du jeu), gérables dans « Mes cartes ».
 - Glisser la carte : à droite pour une nouvelle carte, à gauche pour passer. Vibration au tirage, écran gardé allumé pendant la partie.
 
 ## Version 3 et 4

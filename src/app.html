@@ -195,9 +195,6 @@ h1 em { font-style: normal; background: linear-gradient(90deg, var(--p0), var(--
 .timer .bar i { display: block; height: 100%; width: 100%; background: var(--kind); box-shadow: 0 0 10px var(--kind); transform-origin: left; }
 .timer .left { font-variant-numeric: tabular-nums; font-weight: 800; min-width: 3ch; text-align: right; }
 
-.tools { display: flex; gap: 6px; }
-.tools button { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 5px 11px; font-size: .78rem; font-weight: 600; color: var(--muted); }
-.tools button[aria-pressed="true"] { color: var(--accent); border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
 .swipe-tag { position: absolute; top: 44%; padding: 6px 12px; border-radius: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; font-size: .78rem; opacity: 0; pointer-events: none; background: var(--surface); }
 .swipe-tag.l { left: 14px; color: var(--hot); border: 2px solid var(--hot); transform: rotate(-8deg); }
 .swipe-tag.r { right: 14px; color: var(--soft); border: 2px solid var(--soft); transform: rotate(8deg); }
@@ -391,11 +388,6 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
       <button class="primary" type="submit">Ajouter la carte</button>
     </form>
     <ul class="list" id="perso-list"></ul>
-    <h2>Vos coups de cœur</h2>
-    <p class="note">Les cartes marquées ♥ reviennent plus souvent dans le tirage.</p>
-    <ul class="list" id="fav-list"></ul>
-    <h2>Cartes écartées</h2>
-    <ul class="list" id="ban-list"></ul>
   </section>
 
   <!-- Onglet Récap -->
@@ -471,13 +463,14 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
   // ---------- Sauvegarde (reste sur le téléphone) ----------
   var defaults = {
     names: ["Joueur 1", "Joueur 2"], avatars: ["🔥", "🌙"], theme: "dark", started: false, ctx: "E", level: "thermo", temp: 0, tab: "jeu", axe: "Tout",
-    seen: {}, custom: [], rounds: 0, fav: [], ban: [], recent: [],
+    seen: {}, custom: [], rounds: 0, recent: [],
     stats: [{ v: 0, a: 0, c: 0, g: 0 }, { v: 0, a: 0, c: 0, g: 0 }]
   };
   var S;
   try { S = Object.assign({}, defaults, JSON.parse(localStorage.getItem(KEY) || "{}")); }
   catch (e) { S = Object.assign({}, defaults); }
   if (S.level === "crescendo") S.level = "thermo";
+  delete S.fav; delete S.ban; // anciens « J'adore » et « Plus jamais », retirés
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); sessionStorage.setItem(KEY + "-cur", JSON.stringify(current)); } catch (e) {} if (typeof duoSend === "function") duoSend(); }
 
   // ---------- Lecture d'une carte : "@E texte #20" ----------
@@ -523,15 +516,9 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
   // quand tout le paquet est passé, on l'oublie et on recommence.
   function draw(kind, filter, deckKey) {
     var pool = allCards().filter(function (c) {
-      return c.kind === kind && (!c.ctx || c.ctx === S.ctx) && S.ban.indexOf(c.id) === -1 && filter(c);
+      return c.kind === kind && (!c.ctx || c.ctx === S.ctx) && filter(c);
     });
     if (!pool.length) return null;
-    // Les coups de cœur ♥ ont une chance sur cinq de revenir même s'ils sont déjà passés.
-    var favs = pool.filter(function (c) { return S.fav.indexOf(c.id) !== -1; });
-    if (favs.length && Math.random() < .2) {
-      var f = favs[Math.floor(Math.random() * favs.length)];
-      return { card: f, left: pool.length - (S.seen[deckKey] || []).length, total: pool.length, again: true };
-    }
     var seen = S.seen[deckKey] || [];
     var fresh = pool.filter(function (c) { return seen.indexOf(c.id) === -1; });
     if (!fresh.length) { seen = []; fresh = pool; }
@@ -646,8 +633,6 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
     var tag = c.level ? LEVEL_LABEL[c.level] : (c.axe || "");
     if (S.level === "thermo" && c.level && where === "jeu" && c.kind.indexOf("gage") !== 0) tag = "🌡 " + tag;
     var isGage = c.kind.indexOf("gage") === 0 || c.kind === "recompense";
-    var tools = isGage ? "" : '<div class="tools"><button type="button" data-fav aria-pressed="' + (S.fav.indexOf(c.id) !== -1) + '">♥ J\'adore</button>' +
-      '<button type="button" data-ban>🚫 Plus jamais</button></div>';
     var verb = c.kind === "verite" ? "répond" : c.kind === "action" ? "s'y colle" : c.kind === "recompense" ? "lance la récompense" : c.kind.indexOf("gage") === 0 ? "fait le gage" : "commence";
     el.className = "card" + (c.level === "hot" ? " hotcard" : "") + (c.kind === "recompense" ? " reward" : "");
     el.style.setProperty("--kind", k.color);
@@ -656,8 +641,8 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
       '<div class="meta"><span class="kind">' + k.label + (c.music ? '<span class="music">· 🎤 Musique</span>' : "") + (c.perso ? " · perso" : "") + '</span>' + (tag ? '<span class="pill">' + esc(tag) + '</span>' : "") + '</div>' +
       '<div class="text">' + esc(c.text) + '</div>' +
       (c.t ? '<div class="timer"><button type="button" id="t-' + where + '">⏱ Lancer ' + c.t + ' s</button><div class="bar"><i></i></div><span class="left">' + c.t + '</span></div>' : "") +
-      '<div class="who"><span><span class="name" style="--pc: var(--p' + cur.player + ')"><i>' + esc(S.avatars[cur.player] || "") + '</i>' + esc(S.names[cur.player]) + '</span> ' + verb + (duo.on && cur.player === duo.me ? ' <span class="you">· à toi !</span>' : "") + '</span><span>' + (cur.done ? "✓ réalisé" : c.kind === "recompense" ? "🏆 100°" : cur.again ? "♥ coup de cœur" : cur.left === 0 ? "dernière du paquet" : cur.left + " restantes") + '</span></div>' +
-      tools + '<span class="swipe-tag l">Je passe</span><span class="swipe-tag r">Suivante</span>';
+      '<div class="who"><span><span class="name" style="--pc: var(--p' + cur.player + ')"><i>' + esc(S.avatars[cur.player] || "") + '</i>' + esc(S.names[cur.player]) + '</span> ' + verb + (duo.on && cur.player === duo.me ? ' <span class="you">· à toi !</span>' : "") + '</span><span>' + (cur.done ? "✓ réalisé" : c.kind === "recompense" ? "🏆 100°" : cur.left === 0 ? "dernière du paquet" : cur.left + " restantes") + '</span></div>' +
+      '<span class="swipe-tag l">Je passe</span><span class="swipe-tag r">Suivante</span>';
     if (cur.fresh) {
       cur.fresh = false;
       if (c.kind !== "recompense") { void el.offsetWidth; el.classList.add(isGage ? "shake" : "flip"); }
@@ -837,21 +822,6 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
     }
     el.addEventListener("pointerup", end);
     el.addEventListener("pointercancel", end);
-    // ♥ et 🚫 sur la carte
-    el.addEventListener("click", function (e) {
-      var cur = current[where]; if (!cur) return;
-      var id = cur.card.id;
-      if (e.target.closest("[data-fav]")) {
-        var i = S.fav.indexOf(id);
-        if (i === -1) S.fav.push(id); else S.fav.splice(i, 1);
-        e.target.closest("[data-fav]").setAttribute("aria-pressed", i === -1);
-        if (i === -1) burst("coeur", cur.card.level, el);
-        save();
-      } else if (e.target.closest("[data-ban]")) {
-        S.ban.push(id); save();
-        where === "jeu" ? play(cur.card.kind) : playCoeur();
-      }
-    });
   });
 
   // ---------- Garder l'écran allumé pendant la partie ----------
@@ -888,16 +858,6 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
       return '<li><p>' + esc(c.text) + '<small>' + lab[c.type] + (c.type !== "coeur" ? " · " + LEVEL_LABEL[c.level] : "") + " · " + ctx[c.ctx] + '</small></p>' +
         '<button type="button" data-del="' + c.id + '" aria-label="Supprimer">✕</button></li>';
     }).join("") : '<li><p>Pas encore de carte perso. Ajoutez vos blagues, vos souvenirs, vos défis à vous.</p></li>';
-    var byId = {}; allCards().forEach(function (c) { byId[c.id] = c; });
-    function item(id, attr, label) {
-      var c = byId[id]; if (!c) return "";
-      return '<li><p>' + esc(c.text) + '<small>' + KIND[c.kind].label + (c.level ? " · " + LEVEL_LABEL[c.level] : "") + '</small></p>' +
-        '<button type="button" ' + attr + '="' + esc(id) + '" aria-label="' + label + '">✕</button></li>';
-    }
-    $("fav-list").innerHTML = S.fav.map(function (id) { return item(id, "data-unfav", "Retirer des coups de cœur"); }).join("") ||
-      '<li><p>Touchez ♥ J\'adore sur une carte pour la retrouver ici.</p></li>';
-    $("ban-list").innerHTML = S.ban.map(function (id) { return item(id, "data-unban", "Remettre dans le jeu"); }).join("") ||
-      '<li><p>Aucune. Les cartes marquées 🚫 ne sortiront plus.</p></li>';
   }
 
   // ---------- Accueil et réglages ----------
@@ -980,13 +940,6 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
     S.custom = S.custom.filter(function (c) { return c.id !== b.dataset.del; });
     save(); renderAll();
   });
-  $("tab-perso").addEventListener("click", function (e) {
-    var b = e.target.closest("button[data-unfav], button[data-unban]");
-    if (!b) return;
-    if (b.dataset.unfav) S.fav = S.fav.filter(function (id) { return id !== b.dataset.unfav; });
-    if (b.dataset.unban) S.ban = S.ban.filter(function (id) { return id !== b.dataset.unban; });
-    save(); renderAll();
-  });
   $("toast-x").onclick = hideToast;
   $("reset-game").onclick = function () { $("reset-confirm").hidden = false; this.hidden = true; };
   $("reset-no").onclick = function () { $("reset-confirm").hidden = true; $("reset-game").hidden = false; };
@@ -1001,7 +954,7 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
   // ---------- Jouer sur deux téléphones ----------
   // Un téléphone crée une partie et obtient un code, l'autre le tape. Ensuite, à chaque changement
   // (carte tirée, jauge, gage, prénoms, réglages), le téléphone qui a joué envoie l'état de la partie
-  // à l'autre via Supabase Realtime (Broadcast, sans base de données). Les favoris restent propres à chaque téléphone.
+  // à l'autre via Supabase Realtime (Broadcast, sans base de données). 
   var SUPABASE_URL = "/*SUPABASE_URL*/";
   var SUPABASE_KEY = "/*SUPABASE_KEY*/";
   var SHARED = ["names", "avatars", "ctx", "level", "temp", "rounds", "stats", "seen", "custom", "recent", "axe"];
