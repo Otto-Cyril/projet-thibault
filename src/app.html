@@ -217,6 +217,7 @@ h1 em { font-style: normal; background: linear-gradient(90deg, var(--p0), var(--
 /* Vague de chaleur plein écran quand une carte est faite */
 .heatwave { position: fixed; inset: 0; z-index: 7; pointer-events: none; overflow: hidden; }
 .heatwave .dim { position: absolute; inset: 0; background: rgba(12, 2, 6, .72); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); opacity: 0; animation: dim 1.8s ease forwards; }
+@keyframes glow { 15%, 70% { opacity: 1; } 100% { opacity: 0; } }
 @keyframes dim { 15%, 70% { opacity: 1; } 100% { opacity: 0; } }
 .heatwave .rise { position: absolute; inset: -10% 0 0; filter: blur(10px); opacity: 0;
   background: linear-gradient(to top, color-mix(in srgb, var(--hc) 80%, transparent), color-mix(in srgb, var(--hc) 40%, transparent) 45%, transparent 85%);
@@ -323,7 +324,10 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
 #tab-coeur .under { grid-template-columns: 1fr; }
 #tab-coeur .hint { display: none; }
 @media (prefers-reduced-motion: reduce) {
-  .heatwave .dim, .heatwave .rise, .heatwave .num, .heatwave .ember, .brand .logo, .card, .card.reward, .thermo.bump, .float-deg, .card.flip, .card.shake, .card.ring, .card.hotcard, .card.hotcard.flip, .card.flip::after, .dice.roll span, .toast { animation: none; }
+  /* « Réduire les animations » : la vague de chaleur reste, en simple fondu sans mouvement. */
+  .heatwave .dim, .heatwave .rise, .heatwave .num { animation: glow 1.8s ease forwards; transform: none; }
+  .heatwave .ember { display: none; }
+  .heatwave .ember, .brand .logo, .card, .card.reward, .thermo.bump, .float-deg, .card.flip, .card.shake, .card.ring, .card.hotcard, .card.hotcard.flip, .card.flip::after, .dice.roll span, .toast { animation: none; }
 }
 </style>
 
