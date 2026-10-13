@@ -64,7 +64,7 @@ button { cursor: pointer; }
 
 /* En-tête */
 header.top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-h1 { font: 400 1.75rem/1 var(--display); margin: 0; letter-spacing: -.015em; }
+h1 { font: 400 1.75rem/1 var(--display); margin: 0; white-space: nowrap; letter-spacing: -.015em; }
 h1 em { font-style: normal; background: linear-gradient(90deg, var(--p0), var(--accent), var(--p1)); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .top-r { display: flex; align-items: center; gap: 8px; }
 .gear { position: relative; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; font-size: 1.05rem; padding: 0; }
@@ -237,6 +237,9 @@ h1 em { font-style: normal; background: linear-gradient(90deg, var(--p0), var(--
 
 /* La manette */
 .dock { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 14px; margin-top: 4px; }
+.step { margin: -4px 0 -6px; text-align: center; font-size: .82rem; font-weight: 600; color: var(--muted); }
+.step:empty { display: none; }
+.done.heart { background: linear-gradient(100deg, var(--coeur), color-mix(in srgb, var(--coeur) 60%, var(--accent))); box-shadow: 0 10px 24px -10px var(--coeur); }
 .side { height: 62px; border-radius: 22px; border: 1px solid var(--line); background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-weight: 800; font-size: .92rem; letter-spacing: .02em; transition: transform .15s, box-shadow .25s, border-color .25s; }
 .side .ic { font-size: 1.35rem; line-height: 1; }
 .side.v { --c: var(--accent); }
@@ -316,13 +319,12 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
   .card { min-height: 240px; padding: 16px 16px 12px; gap: 10px; }
   .card .text { font-size: 1.45rem; }
   .side { height: 54px; }
-  .dice { width: 66px; height: 66px; font-size: 1.9rem; }
   .done, .pass { padding-top: 9px; padding-bottom: 9px; }
   .seg button { padding: 6px 2px; }
 }
+.link-btn { border: 1px solid var(--line); background: var(--surface); border-radius: 16px; padding: 12px; font-weight: 700; text-align: left; }
 .start { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
-#tab-coeur .under { grid-template-columns: 1fr; }
-#tab-coeur .hint { display: none; }
+#tab-coeur .under.solo { grid-template-columns: 1fr; }
 @media (prefers-reduced-motion: reduce) {
   /* « Réduire les animations » : la vague de chaleur reste, en simple fondu sans mouvement. */
   .heatwave .dim, .heatwave .rise, .heatwave .num { animation: glow 1.8s ease forwards; transform: none; }
@@ -335,7 +337,8 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
   <header class="top">
     <h1>Juste <em>nous</em> deux</h1>
     <div class="top-r">
-      <span class="rounds" id="rounds">Manche 0</span>
+      <span class="rounds" id="rounds" hidden>Manche 0</span>
+      <button type="button" class="gear" id="restart" aria-label="Recommencer la partie">↺</button>
       <button type="button" class="gear" id="open-setup" aria-label="Joueurs et réglages">⚙️<span class="badge" id="duo-badge" hidden></span></button>
     </div>
   </header>
@@ -357,14 +360,14 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
     </div>
     <p class="thermo-help" id="thermo-help"></p>
     <article class="card" id="card-jeu"></article>
-    <div class="under">
-      <button class="done" id="done-jeu">Fait</button>
-      <button class="pass" id="pass-jeu">Je passe → gage</button>
-    </div>
-    <div class="dock">
+    <p class="step" id="step-jeu"></p>
+    <div class="under" id="choose-jeu">
       <button class="side v" id="btn-v"><span class="ic">🔥</span>Vérité</button>
-      <button class="dice" id="btn-r" aria-label="Tirage aléatoire"><span>🎲</span></button>
       <button class="side a" id="btn-a"><span class="ic">😈</span>Action</button>
+    </div>
+    <div class="under" id="answer-jeu" hidden>
+      <button class="done" id="done-jeu">Fait</button>
+      <button class="pass" id="pass-jeu">Je passe</button>
     </div>
   </section>
 
@@ -374,10 +377,9 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
     <div class="chips" id="axes"></div>
     <article class="card" id="card-coeur"></article>
     <div class="under">
-      <p class="hint">Glisse → suivante · ← pas prêt·e</p>
-      <button class="pass" id="pass-coeur">Pas prêt·e → gage doux</button>
+      <button class="pass" id="pass-coeur">Pas prêt·e</button>
+      <button class="done heart" id="btn-c">Carte suivante</button>
     </div>
-    <div class="dock"><span></span><button class="dice heart" id="btn-c" aria-label="Carte suivante"><span>💜</span></button><span></span></div>
   </section>
 
   <!-- Onglet Mes cartes -->
@@ -414,11 +416,6 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
     <h2>Récap de la partie</h2>
     <p class="verdict" id="verdict"></p>
     <div class="stats" id="stats"></div>
-    <button class="danger" id="reset-game">Nouvelle partie (remet les scores à zéro)</button>
-    <div class="confirm" id="reset-confirm" hidden>
-      <button class="primary" id="reset-yes">Oui, remettre à zéro</button>
-      <button class="danger" id="reset-no">Annuler</button>
-    </div>
     <button class="danger" id="reset-seen">Revoir toutes les cartes depuis le début</button>
     <p class="note" id="seen-info"></p>
   </section>
@@ -449,6 +446,8 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
     </div>
     <h3>Chacun son téléphone</h3>
     <div class="duo" id="duo" aria-live="polite"></div>
+    <h3>Vos cartes</h3>
+    <button type="button" class="link-btn" id="go-perso">✍️ Écrire nos propres cartes</button>
     <h3>Thème</h3>
     <div class="seg" id="theme" role="group" aria-label="Thème">
       <button data-v="dark">🌙 Sombre</button>
@@ -465,7 +464,6 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
   <div role="tablist">
     <button role="tab" data-tab="jeu"><span>🎲</span>Jeu</button>
     <button role="tab" data-tab="coeur"><span>❤️</span>Cœur ouvert</button>
-    <button role="tab" data-tab="perso"><span>✍️</span>Mes cartes</button>
     <button role="tab" data-tab="recap"><span>📊</span>Récap</button>
   </div>
 </nav>
@@ -661,8 +659,7 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
       el.innerHTML = where === "jeu"
         ? '<div class="meta"><span>Prêts ?</span></div><div class="text">Tirez une carte. La première vérité est souvent la plus drôle.</div>'
         : '<div class="meta"><span>Cœur ouvert</span></div><div class="text">Installez-vous, rangez les téléphones, et tirez la première carte quand vous êtes prêts.</div>';
-      $("pass-" + where).disabled = true;
-      if (where === "jeu") $("done-jeu").disabled = true;
+      setButtons(where, null);
       return;
     }
     var c = cur.card, k = KIND[c.kind];
@@ -685,8 +682,22 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
       burst(c.kind === "recompense" ? "recompense" : isGage ? "gage" : c.music ? "music" : c.kind, c.level, el);
     }
     if (c.t) $("t-" + where).onclick = function () { startTimer(el, c.t, this); };
-    $("pass-" + where).disabled = !!cur.isGage || !!cur.done;
-    if (where === "jeu") $("done-jeu").disabled = !!cur.isGage || !!cur.done;
+    setButtons(where, cur);
+  }
+  // Un seul choix à la fois : tirer une Vérité ou une Action, puis « Fait » ou « Je passe ».
+  function setButtons(where, cur) {
+    var answering = !!cur && !cur.isGage && !cur.done;
+    if (where === "coeur") {
+      $("pass-coeur").hidden = !answering;
+      $("pass-coeur").parentNode.classList.toggle("solo", !answering);
+      $("btn-c").textContent = cur ? "Carte suivante" : "Première carte";
+      return;
+    }
+    $("choose-jeu").hidden = answering; $("answer-jeu").hidden = !answering;
+    $("step-jeu").textContent = !cur ? "Choisis : vérité ou action ?" :
+      answering ? "Fait = la température monte · Je passe = un gage" :
+      cur.card.kind === "recompense" ? "Profitez-en, puis on repart : vérité ou action ?" :
+      cur.isGage ? "Gage fait ? Au tour suivant : vérité ou action ?" : "Au tour suivant : vérité ou action ?";
   }
 
   function startTimer(el, secs, btn) {
@@ -942,6 +953,7 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
     $("p" + i).addEventListener("change", function () { S.names[i] = this.value.trim() || "Joueur " + (i + 1); save(); renderAll(); });
   });
   $("open-setup").onclick = function () { setupOpen = true; renderAll(); };
+  $("go-perso").onclick = function () { setupOpen = false; S.started = true; S.tab = "perso"; save(); renderAll(); window.scrollTo(0, 0); };
   $("setup-back").onclick = $("start").onclick = function () {
     setupOpen = false; S.started = true; save(); renderAll(); window.scrollTo(0, 0);
   };
@@ -956,8 +968,7 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
   $("btn-v").onclick = function () { play("verite"); };
   $("btn-a").onclick = function () { play("action"); };
   function roll(b) { b.classList.remove("roll"); void b.offsetWidth; b.classList.add("roll"); }
-  $("btn-r").onclick = function () { roll(this); play(Math.random() < .5 ? "verite" : "action"); };
-  $("btn-c").onclick = function () { roll(this); playCoeur(); };
+  $("btn-c").onclick = function () { playCoeur(); };
   $("done-jeu").onclick = function () { done(); };
   $("pass-jeu").onclick = function () { pass("jeu"); };
   $("pass-coeur").onclick = function () { pass("coeur"); };
@@ -977,13 +988,17 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
     save(); renderAll();
   });
   $("toast-x").onclick = hideToast;
-  $("reset-game").onclick = function () { $("reset-confirm").hidden = false; this.hidden = true; };
-  $("reset-no").onclick = function () { $("reset-confirm").hidden = true; $("reset-game").hidden = false; };
-  $("reset-yes").onclick = function () {
-    S.rounds = 0; S.temp = 0; S.recent = []; S.stats = [{ v: 0, a: 0, c: 0, g: 0 }, { v: 0, a: 0, c: 0, g: 0 }];
-    current = { jeu: null, coeur: null };
-    $("reset-confirm").hidden = true; $("reset-game").hidden = false;
-    save(); renderAll();
+  // Recommencer : jauge, manches et scores à zéro ; les prénoms, avatars et réglages restent.
+  $("restart").onclick = function () {
+    $("toast-text").textContent = "Recommencer la partie ? La jauge et les scores repartent à zéro.";
+    $("toast-go").textContent = "Recommencer";
+    $("toast-go").onclick = function () {
+      S.rounds = 0; S.temp = 0; S.recent = []; S.stats = [{ v: 0, a: 0, c: 0, g: 0 }, { v: 0, a: 0, c: 0, g: 0 }];
+      current = { jeu: null, coeur: null }; S.tab = "jeu";
+      hideToast(); save(); renderAll(); window.scrollTo(0, 0);
+    };
+    $("toast").hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(hideToast, 7000);
   };
   $("reset-seen").onclick = function () { S.seen = {}; save(); renderAll(); };
 
