@@ -53,3 +53,9 @@ Jeu de cartes pour couple : vérités, actions, gages et « Cœur ouvert ».
 ## Mises à jour automatiques
 
 `build.py` écrit l'empreinte de la page dans `dist/version.json`. Quand on revient dans l'appli, elle compare cette empreinte à la sienne et se recharge toute seule si une nouvelle version est en ligne ; la partie, la jauge, la carte en cours et la partie à deux sont gardées. Pendant qu'on joue, un petit message « Mettre à jour » s'affiche au lieu de couper la partie.
+
+## Version 5 : design
+
+- Écran d'accueil (première ouverture) qui sert aussi de réglages via la roue ⚙ : prénoms, avatars emoji (partagés en mode deux téléphones), ensemble ou en appel, deux téléphones, thème.
+- Écran de jeu compact : intensité, jauge, carte, « Fait » et « Je passe », manette ; tout tient au-dessus de la barre d'onglets, même sur iPhone SE.
+- Thème sombre par défaut, thème clair au choix. Thèmes de Cœur ouvert sur un seul rang qui défile.

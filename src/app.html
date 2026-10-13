@@ -1,5 +1,5 @@
 <title>Juste nous deux</title>
-<meta name="theme-color" content="#2a1420">
+<meta name="theme-color" content="#150c12">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Juste nous deux">
 <link rel="manifest" href="manifest.webmanifest">
@@ -16,8 +16,8 @@
   --surface: #fffafc;
   --raised: #ffffff;
   --fg: #2a1420;
-  --muted: #80606e;
-  --line: #ead7df;
+  --muted: #6e4c5c;
+  --line: #e6cfd9;
   --accent: #d1135a;
   --accent-ink: #ffffff;
   --soft: #23a08f;
@@ -32,14 +32,8 @@
   --display: "Gloock", "Georgia", serif;
   --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #150c12; --surface: #21141c; --raised: #2a1923; --fg: #f8e9ef; --muted: #b997a7; --line: #3a2531;
-    --accent: #ff4f8b; --accent-ink: #ffffff; --soft: #4fd1bd; --medium: #ffaa45; --hot: #ff4d6d; --coeur: #b78cff;
-    --p0: #ff6b92; --p1: #9b8cff; --gold: #ffc23d; --card-shadow: 0 24px 50px -20px rgba(0, 0, 0, .8); color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
+/* Thème sombre par défaut (le thème clair reste au choix dans les réglages). */
+:root:not([data-theme="light"]) {
   --bg: #150c12; --surface: #21141c; --raised: #2a1923; --fg: #f8e9ef; --muted: #b997a7; --line: #3a2531;
   --accent: #ff4f8b; --accent-ink: #ffffff; --soft: #4fd1bd; --medium: #ffaa45; --hot: #ff4d6d; --coeur: #b78cff;
   --p0: #ff6b92; --p1: #9b8cff; --gold: #ffc23d; --card-shadow: 0 24px 50px -20px rgba(0, 0, 0, .8); color-scheme: dark;
@@ -66,15 +60,47 @@ button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
-.app { max-width: 460px; margin: 0 auto; padding: 16px 16px 120px; display: flex; flex-direction: column; gap: 16px; min-height: 100%; }
+.app { max-width: 460px; margin: 0 auto; padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 112px; display: flex; flex-direction: column; gap: 14px; min-height: 100%; }
 
 /* En-tête */
 header.top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 h1 { font: 400 1.75rem/1 var(--display); margin: 0; letter-spacing: -.015em; }
 h1 em { font-style: normal; background: linear-gradient(90deg, var(--p0), var(--accent), var(--p1)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.top-r { display: flex; align-items: center; gap: 8px; }
+.gear { position: relative; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; font-size: 1.05rem; padding: 0; }
+.gear .badge { position: absolute; top: 1px; right: 1px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--bg); background: var(--muted); }
+.gear .badge.on { background: var(--soft); box-shadow: 0 0 8px var(--soft); }
 .rounds { font-size: .72rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-variant-numeric: tabular-nums; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; }
 
-/* Joueurs */
+/* Accueil et réglages : un écran par-dessus le jeu */
+.setup { position: fixed; inset: 0; z-index: 8; overflow-y: auto; background: radial-gradient(120% 50% at 50% 0%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%) no-repeat, var(--bg); }
+.setup-in { max-width: 460px; margin: 0 auto; padding: calc(24px + env(safe-area-inset-top, 0px)) 16px calc(28px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 14px; min-height: 100%; }
+.brand { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 0 4px; }
+.brand .logo { font-size: 2.6rem; line-height: 1; animation: beat 2.4s ease-in-out infinite; filter: drop-shadow(0 0 18px color-mix(in srgb, var(--accent) 70%, transparent)); }
+@keyframes beat { 0%, 60%, 100% { transform: scale(1); } 10% { transform: scale(1.14); } 22% { transform: scale(1.04); } 32% { transform: scale(1.12); } }
+.brand h2 { font: 400 2.2rem/1 var(--display); margin: 0; letter-spacing: -.015em; }
+.brand h2 em { font-style: normal; background: linear-gradient(90deg, var(--p0), var(--accent), var(--p1)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.brand p { margin: 0; color: var(--muted); font-size: .9rem; max-width: 30ch; }
+.setup h3 { margin: 6px 0 -4px; font-size: .72rem; text-transform: uppercase; letter-spacing: .12em; font-weight: 800; color: var(--muted); }
+.setup .back { align-self: flex-end; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 12px; font-weight: 700; font-size: .82rem; margin-bottom: -8px; }
+.start { border: 0; border-radius: 20px; padding: 16px; font-weight: 800; font-size: 1.05rem; color: #fff; margin-top: auto;
+  background: linear-gradient(100deg, var(--p0), var(--accent) 55%, var(--p1)); box-shadow: 0 14px 34px -10px var(--accent); }
+.start:active { transform: scale(.98); }
+
+/* Joueurs (dans l'écran d'accueil) */
+.pl { --pc: var(--p0); background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+.pl.p1 { --pc: var(--p1); }
+.pl-head { display: flex; align-items: center; gap: 10px; }
+.pl-head i { flex: none; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: 1.45rem;
+  background: color-mix(in srgb, var(--pc) 22%, var(--raised)); box-shadow: 0 0 0 2px var(--pc), 0 0 18px -4px var(--pc); }
+.pl-head input { flex: 1; min-width: 0; border: 0; border-bottom: 1px solid var(--line); background: transparent; padding: 6px 2px; font-weight: 700; font-size: 1.05rem; outline: none; }
+.pl-head input:focus { border-bottom-color: var(--pc); }
+.avs { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding: 2px; }
+.avs::-webkit-scrollbar { display: none; }
+.avs button { flex: none; width: 36px; height: 36px; border-radius: 50%; border: 1px solid transparent; background: transparent; font-size: 1.2rem; padding: 0; opacity: .55; transition: opacity .2s, background .2s; }
+.avs button[aria-pressed="true"] { opacity: 1; background: color-mix(in srgb, var(--pc) 20%, transparent); border-color: var(--pc); }
+
+/* Joueurs (ancien bandeau) */
 .players { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; }
 .player { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px 4px 4px; min-width: 0; }
 .player i { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--pc); box-shadow: 0 0 14px -2px var(--pc); display: grid; place-items: center; color: #fff; font-style: normal; font-weight: 700; font-size: .85rem; }
@@ -120,7 +146,7 @@ h1 em { font-style: normal; background: linear-gradient(90deg, var(--p0), var(--
 .table { display: flex; flex-direction: column; gap: 14px; }
 .card {
   --kind: var(--accent);
-  position: relative; min-height: 330px; padding: 24px 22px 18px; border-radius: 28px; overflow: hidden;
+  position: relative; min-height: clamp(230px, calc(100dvh - 470px), 360px); padding: 22px 20px 16px; border-radius: 28px; overflow: hidden;
   display: flex; flex-direction: column; gap: 14px; isolation: isolate;
   border: 2px solid transparent;
   background:
@@ -160,7 +186,7 @@ h1 em { font-style: normal; background: linear-gradient(90deg, var(--p0), var(--
 .card .who { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: .88rem; color: var(--muted); flex-wrap: wrap; }
 .card .who > span:first-child { display: inline-flex; align-items: center; gap: 6px; }
 .card .who .name { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: var(--fg); background: color-mix(in srgb, var(--pc) 16%, transparent); border-radius: 999px; padding: 3px 10px 3px 4px; }
-.card .who .name i { width: 18px; height: 18px; border-radius: 50%; background: var(--pc); box-shadow: 0 0 10px var(--pc); }
+.card .who .name i { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: .8rem; background: color-mix(in srgb, var(--pc) 30%, transparent); box-shadow: 0 0 0 1.5px var(--pc), 0 0 10px var(--pc); }
 .card.empty .text { color: var(--muted); font-size: 1.35rem; }
 
 .timer { display: flex; align-items: center; gap: 10px; }
@@ -177,7 +203,7 @@ h1 em { font-style: normal; background: linear-gradient(90deg, var(--p0), var(--
 .swipe-tag.r { right: 14px; color: var(--soft); border: 2px solid var(--soft); transform: rotate(8deg); }
 
 /* La jauge de température */
-.thermo { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 8px 12px; }
+.thermo { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 6px 12px; }
 .thermo .ico { font-size: 1.15rem; }
 .thermo .tube { position: relative; flex: 1; height: 12px; border-radius: 999px; overflow: hidden; background: linear-gradient(90deg, var(--soft), var(--medium) 50%, var(--hot)); }
 .thermo .tube::after { content: ""; position: absolute; inset: 0 0 0 auto; width: var(--cover, 100%); background: var(--line); transition: width .8s cubic-bezier(.3, 1.3, .5, 1); }
@@ -185,8 +211,10 @@ h1 em { font-style: normal; background: linear-gradient(90deg, var(--p0), var(--
 .thermo b { font-variant-numeric: tabular-nums; font-weight: 800; min-width: 3.4ch; text-align: right; color: var(--tc, var(--muted)); transition: color .4s; }
 .thermo.bump { animation: bump .6s ease; }
 @keyframes bump { 30% { transform: scale(1.04); box-shadow: 0 0 26px -6px var(--hot); } }
+.thermo-help:empty { display: none; }
 .thermo-help { margin: -8px 0 0; font-size: .72rem; color: var(--muted); text-align: center; }
-.done { border: 0; border-radius: 999px; padding: 8px 14px; font-weight: 800; font-size: .88rem; color: #fff; background: linear-gradient(90deg, var(--soft), var(--medium), var(--hot)); box-shadow: 0 8px 20px -10px var(--hot); white-space: nowrap; }
+.done { border: 0; border-radius: 16px; padding: 12px 10px; font-weight: 800; font-size: .95rem; color: #fff; background: linear-gradient(100deg, var(--accent), var(--hot)); box-shadow: 0 10px 24px -10px var(--accent); white-space: nowrap; }
+.done:active, .pass:active { transform: scale(.97); }
 .done[disabled] { opacity: .35; cursor: default; box-shadow: none; }
 .float-deg { position: fixed; z-index: 7; pointer-events: none; font-weight: 900; font-size: 1.2rem; color: var(--hot); text-shadow: 0 0 12px var(--hot); animation: deg 1.1s ease-out forwards; }
 @keyframes deg { to { transform: translateY(-46px); opacity: 0; } }
@@ -196,14 +224,14 @@ h1 em { font-style: normal; background: linear-gradient(90deg, var(--p0), var(--
 
 /* La manette */
 .dock { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 14px; margin-top: 4px; }
-.side { height: 68px; border-radius: 22px; border: 1px solid var(--line); background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-weight: 800; font-size: .92rem; letter-spacing: .02em; transition: transform .15s, box-shadow .25s, border-color .25s; }
+.side { height: 62px; border-radius: 22px; border: 1px solid var(--line); background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-weight: 800; font-size: .92rem; letter-spacing: .02em; transition: transform .15s, box-shadow .25s, border-color .25s; }
 .side .ic { font-size: 1.35rem; line-height: 1; }
 .side.v { --c: var(--accent); }
 .side.a { --c: var(--medium); }
 .side:hover, .side:focus-visible { border-color: color-mix(in srgb, var(--c) 55%, transparent); box-shadow: 0 0 24px -8px var(--c); }
 .side:active { transform: scale(.95); }
 .dice {
-  width: 88px; height: 88px; border-radius: 50%; border: 0; font-size: 2.3rem; line-height: 1; color: #fff; display: grid; place-items: center;
+  width: 78px; height: 78px; border-radius: 50%; border: 0; font-size: 2.3rem; line-height: 1; color: #fff; display: grid; place-items: center;
   background: radial-gradient(circle at 32% 26%, color-mix(in srgb, var(--accent) 45%, #fff), var(--accent) 58%, color-mix(in srgb, var(--accent) 65%, #000));
   box-shadow: 0 14px 34px -8px color-mix(in srgb, var(--accent) 75%, transparent), 0 0 0 7px color-mix(in srgb, var(--accent) 14%, transparent);
   transition: transform .15s;
@@ -212,17 +240,20 @@ h1 em { font-style: normal; background: linear-gradient(90deg, var(--p0), var(--
 .dice.roll span { display: inline-block; animation: roll .5s cubic-bezier(.3, 1.4, .5, 1); }
 @keyframes roll { from { transform: rotate(-200deg) scale(.6); } }
 .dice.heart { background: radial-gradient(circle at 32% 26%, color-mix(in srgb, var(--coeur) 45%, #fff), var(--coeur) 58%, color-mix(in srgb, var(--coeur) 65%, #000)); box-shadow: 0 14px 34px -8px color-mix(in srgb, var(--coeur) 75%, transparent), 0 0 0 7px color-mix(in srgb, var(--coeur) 14%, transparent); }
-.under { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.under { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 10px; }
 .hint { font-size: .74rem; color: var(--muted); margin: 0; }
-.pass { border: 0; background: transparent; padding: 6px 2px; font-weight: 700; font-size: .85rem; color: var(--hot); white-space: nowrap; }
+.pass { border: 1.5px solid color-mix(in srgb, var(--hot) 60%, transparent); background: color-mix(in srgb, var(--hot) 8%, transparent); border-radius: 16px; padding: 11px 10px; font-weight: 800; font-size: .95rem; color: var(--hot); white-space: nowrap; }
+#pass-coeur { border-color: color-mix(in srgb, var(--coeur) 60%, transparent); background: color-mix(in srgb, var(--coeur) 8%, transparent); }
 #pass-coeur { color: var(--coeur); }
 .pass[disabled] { opacity: .35; cursor: default; }
 .center { justify-content: center; }
 
-.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px; scroll-padding: 16px; }
+.chips::-webkit-scrollbar { display: none; }
+.chips button { flex: none; white-space: nowrap; }
 .chips button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 12px; font-size: .82rem; font-weight: 700; color: var(--muted); }
 .chips button[aria-pressed="true"] { color: var(--coeur); border-color: color-mix(in srgb, var(--coeur) 50%, transparent); background: color-mix(in srgb, var(--coeur) 12%, var(--surface)); box-shadow: 0 0 16px -6px var(--coeur); }
-.intro { color: var(--muted); font-size: .92rem; margin: 0; }
+.intro { color: var(--muted); font-size: .84rem; margin: 0; text-align: center; }
 
 /* Mes cartes et récap */
 .panel { display: flex; flex-direction: column; gap: 12px; }
@@ -265,30 +296,35 @@ nav.tabs div { pointer-events: auto; display: flex; gap: 2px; width: 100%; max-w
 nav.tabs button { flex: 1; min-width: 0; border: 0; background: transparent; padding: 7px 2px; border-radius: 18px; font-size: .72rem; font-weight: 700; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 1px; transition: background .2s, color .2s; }
 nav.tabs button span { font-size: 1.15rem; }
 nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+/* Petits écrans (iPhone SE…) : tout doit tenir au-dessus de la barre d'onglets. */
+@media (max-height: 720px) {
+  .app { gap: 10px; padding-top: calc(10px + env(safe-area-inset-top, 0px)); }
+  .table { gap: 10px; }
+  .card { min-height: 240px; padding: 16px 16px 12px; gap: 10px; }
+  .card .text { font-size: 1.45rem; }
+  .side { height: 54px; }
+  .dice { width: 66px; height: 66px; font-size: 1.9rem; }
+  .done, .pass { padding-top: 9px; padding-bottom: 9px; }
+  .seg button { padding: 6px 2px; }
+}
+.start { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+#tab-coeur .under { grid-template-columns: 1fr; }
+#tab-coeur .hint { display: none; }
 @media (prefers-reduced-motion: reduce) {
-  .card, .card.reward, .thermo.bump, .float-deg, .card.flip, .card.shake, .card.ring, .card.hotcard, .card.hotcard.flip, .card.flip::after, .dice.roll span, .toast { animation: none; }
+  .brand .logo, .card, .card.reward, .thermo.bump, .float-deg, .card.flip, .card.shake, .card.ring, .card.hotcard, .card.hotcard.flip, .card.flip::after, .dice.roll span, .toast { animation: none; }
 }
 </style>
 
 <div class="app">
   <header class="top">
     <h1>Juste <em>nous</em> deux</h1>
-    <span class="rounds" id="rounds">Manche 0</span>
+    <div class="top-r">
+      <span class="rounds" id="rounds">Manche 0</span>
+      <button type="button" class="gear" id="open-setup" aria-label="Joueurs et réglages">⚙️<span class="badge" id="duo-badge" hidden></span></button>
+    </div>
   </header>
 
-  <div class="players">
-    <label class="player p0"><i id="i0">1</i><input id="p0" aria-label="Prénom du joueur 1" maxlength="16"></label>
-    <span class="amp">&amp;</span>
-    <label class="player p1"><i id="i1">2</i><input id="p1" aria-label="Prénom du joueur 2" maxlength="16"></label>
-  </div>
-
-  <div class="duo" id="duo" aria-live="polite"></div>
-
   <div class="controls">
-    <div class="seg" id="ctx" role="group" aria-label="Où êtes-vous ?">
-      <button data-v="E">🤝 Ensemble</button>
-      <button data-v="A">📱 En appel</button>
-    </div>
     <div class="seg level" id="level" role="group" aria-label="Intensité" data-only="jeu">
       <button data-v="all">Tout</button>
       <button data-v="soft">Soft</button>
@@ -318,7 +354,7 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
 
   <!-- Onglet Cœur ouvert -->
   <section class="table" id="tab-coeur" hidden>
-    <p class="intro">Ici on prend son temps. Pas de score ni de filtre : on répond chacun son tour, et l'autre écoute sans interrompre.</p>
+    <p class="intro">Ici on prend son temps : on répond chacun son tour, l'autre écoute sans interrompre. Glisse la carte pour passer à la suivante.</p>
     <div class="chips" id="axes"></div>
     <article class="card" id="card-coeur"></article>
     <div class="under">
@@ -377,6 +413,40 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
   </section>
 </div>
 
+<!-- Accueil (première ouverture) et réglages (roue ⚙) -->
+<section class="setup" id="setup" role="dialog" aria-modal="true" aria-labelledby="setup-title" hidden>
+  <div class="setup-in">
+    <button type="button" class="back" id="setup-back">✕ Fermer</button>
+    <div class="brand">
+      <div class="logo" aria-hidden="true">💞</div>
+      <h2 id="setup-title">Juste <em>nous</em> deux</h2>
+      <p>Vérités, actions et cœur ouvert, rien qu'à vous deux. Chaque carte réalisée fait monter la température 🌡, à 100° une récompense vous attend.</p>
+    </div>
+    <h3>Qui joue ?</h3>
+    <div class="pl p0">
+      <div class="pl-head"><i id="i0">🔥</i><input id="p0" aria-label="Prénom du joueur 1" maxlength="16" autocomplete="off"></div>
+      <div class="avs" data-p="0" role="group" aria-label="Avatar du joueur 1"></div>
+    </div>
+    <div class="pl p1">
+      <div class="pl-head"><i id="i1">🌙</i><input id="p1" aria-label="Prénom du joueur 2" maxlength="16" autocomplete="off"></div>
+      <div class="avs" data-p="1" role="group" aria-label="Avatar du joueur 2"></div>
+    </div>
+    <h3>Où êtes-vous ?</h3>
+    <div class="seg" id="ctx" role="group" aria-label="Où êtes-vous ?">
+      <button data-v="E">🤝 Ensemble</button>
+      <button data-v="A">📱 En appel</button>
+    </div>
+    <h3>Chacun son téléphone</h3>
+    <div class="duo" id="duo" aria-live="polite"></div>
+    <h3>Thème</h3>
+    <div class="seg" id="theme" role="group" aria-label="Thème">
+      <button data-v="dark">🌙 Sombre</button>
+      <button data-v="light">☀️ Clair</button>
+    </div>
+    <button type="button" class="start" id="start">On commence 💋</button>
+  </div>
+</section>
+
 <canvas id="fx" aria-hidden="true"></canvas>
 <div class="toast" id="toast" role="status" hidden><p id="toast-text"></p><button type="button" id="toast-go"></button><button type="button" class="x" id="toast-x" aria-label="Fermer">✕</button></div>
 
@@ -400,7 +470,7 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
 
   // ---------- Sauvegarde (reste sur le téléphone) ----------
   var defaults = {
-    names: ["Joueur 1", "Joueur 2"], ctx: "E", level: "thermo", temp: 0, tab: "jeu", axe: "Tout",
+    names: ["Joueur 1", "Joueur 2"], avatars: ["🔥", "🌙"], theme: "dark", started: false, ctx: "E", level: "thermo", temp: 0, tab: "jeu", axe: "Tout",
     seen: {}, custom: [], rounds: 0, fav: [], ban: [], recent: [],
     stats: [{ v: 0, a: 0, c: 0, g: 0 }, { v: 0, a: 0, c: 0, g: 0 }]
   };
@@ -529,7 +599,7 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
     $("thermo").setAttribute("aria-valuenow", t);
     $("thermo").style.setProperty("--tc", "var(--" + tempLevel() + ")");
     $("thermo-help").textContent = t >= 100 ? "100° atteints ! Profitez de votre récompense, la jauge repart à zéro au prochain tirage."
-      : "Chaque carte réalisée fait monter la température" + (S.level === "thermo" ? " et les cartes chauffent" : "") + ". À 100° : récompense.";
+      : "";
   }
 
   // Qui joue : celui qui a eu le moins de cartes, au hasard en cas d'égalité.
@@ -586,7 +656,7 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
       '<div class="meta"><span class="kind">' + k.label + (c.music ? '<span class="music">· 🎤 Musique</span>' : "") + (c.perso ? " · perso" : "") + '</span>' + (tag ? '<span class="pill">' + esc(tag) + '</span>' : "") + '</div>' +
       '<div class="text">' + esc(c.text) + '</div>' +
       (c.t ? '<div class="timer"><button type="button" id="t-' + where + '">⏱ Lancer ' + c.t + ' s</button><div class="bar"><i></i></div><span class="left">' + c.t + '</span></div>' : "") +
-      '<div class="who"><span><span class="name" style="--pc: var(--p' + cur.player + ')"><i></i>' + esc(S.names[cur.player]) + '</span> ' + verb + (duo.on && cur.player === duo.me ? ' <span class="you">· à toi !</span>' : "") + '</span><span>' + (cur.done ? "✓ réalisé" : c.kind === "recompense" ? "🏆 100°" : cur.again ? "♥ coup de cœur" : cur.left === 0 ? "dernière du paquet" : cur.left + " restantes") + '</span></div>' +
+      '<div class="who"><span><span class="name" style="--pc: var(--p' + cur.player + ')"><i>' + esc(S.avatars[cur.player] || "") + '</i>' + esc(S.names[cur.player]) + '</span> ' + verb + (duo.on && cur.player === duo.me ? ' <span class="you">· à toi !</span>' : "") + '</span><span>' + (cur.done ? "✓ réalisé" : c.kind === "recompense" ? "🏆 100°" : cur.again ? "♥ coup de cœur" : cur.left === 0 ? "dernière du paquet" : cur.left + " restantes") + '</span></div>' +
       tools + '<span class="swipe-tag l">Je passe</span><span class="swipe-tag r">Suivante</span>';
     if (cur.fresh) {
       cur.fresh = false;
@@ -830,10 +900,25 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
       '<li><p>Aucune. Les cartes marquées 🚫 ne sortiront plus.</p></li>';
   }
 
+  // ---------- Accueil et réglages ----------
+  var AVATARS = ["🔥", "🌙", "😈", "🦊", "🐱", "🌸", "🍒", "💋", "⭐", "🐻", "🦋", "🍓", "👑", "🎧"];
+  var setupOpen = false;
+  if (!Array.isArray(S.avatars) || S.avatars.length !== 2) S.avatars = defaults.avatars.slice();
+  // Ceux qui jouaient déjà avant l'écran d'accueil ne le revoient pas forcément : il s'ouvre une fois pour choisir les avatars.
+
   // ---------- Rendu global ----------
   function renderAll() {
     $("p0").value = S.names[0]; $("p1").value = S.names[1];
-    $("i0").textContent = (S.names[0] || "1").charAt(0).toUpperCase(); $("i1").textContent = (S.names[1] || "2").charAt(0).toUpperCase();
+    $("i0").textContent = S.avatars[0]; $("i1").textContent = S.avatars[1];
+    document.querySelectorAll(".avs").forEach(function (el) {
+      var i = +el.dataset.p;
+      el.innerHTML = AVATARS.map(function (a) { return '<button type="button" data-a="' + a + '" aria-pressed="' + (S.avatars[i] === a) + '">' + a + '</button>'; }).join("");
+    });
+    document.documentElement.setAttribute("data-theme", S.theme);
+    document.querySelectorAll("#theme button").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.v === S.theme); });
+    $("setup").hidden = !(setupOpen || !S.started);
+    $("setup-back").hidden = !S.started;
+    $("start").textContent = S.started ? "Retour au jeu" : "On commence 💋";
     $("rounds").textContent = "Manche " + S.rounds;
     document.querySelectorAll("#ctx button").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.v === S.ctx); });
     document.querySelectorAll("#level button").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.v === S.level); });
@@ -842,7 +927,7 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
     if (S.tab === "coeur") mood = "coeur";
     else if (S.tab === "jeu") mood = current.jeu && current.jeu.card.level ? current.jeu.card.level : (S.level === "all" ? "" : S.level === "thermo" ? tempLevel() : S.level);
     document.documentElement.setAttribute("data-mood", mood);
-    var meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.content = mood === "hot" ? "#24070f" : "#2a1420";
+    var meta = document.querySelector('meta[name="theme-color"]'); if (meta) meta.content = mood === "hot" ? "#1d050c" : S.theme === "light" ? "#f7eef1" : "#150c12";
     ["jeu", "coeur", "perso", "recap"].forEach(function (t) { $("tab-" + t).hidden = S.tab !== t; });
     document.querySelectorAll("nav.tabs button").forEach(function (b) { b.setAttribute("aria-selected", b.dataset.tab === S.tab); });
     var axes = ["Tout"].concat(Object.keys(DATA.coeur));
@@ -857,8 +942,17 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
 
   // ---------- Branchements ----------
   [0, 1].forEach(function (i) {
+    $("p" + i).addEventListener("focus", function () { this.select(); });
     $("p" + i).addEventListener("change", function () { S.names[i] = this.value.trim() || "Joueur " + (i + 1); save(); renderAll(); });
   });
+  $("open-setup").onclick = function () { setupOpen = true; renderAll(); };
+  $("setup-back").onclick = $("start").onclick = function () {
+    setupOpen = false; S.started = true; save(); renderAll(); window.scrollTo(0, 0);
+  };
+  document.querySelectorAll(".avs").forEach(function (el) {
+    el.addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) { S.avatars[+el.dataset.p] = b.dataset.a; save(); renderAll(); } });
+  });
+  $("theme").addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) { S.theme = b.dataset.v; save(); renderAll(); } });
   $("ctx").addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) { S.ctx = b.dataset.v; save(); renderAll(); } });
   $("level").addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) { S.level = b.dataset.v; S.recent = []; hideToast(); save(); renderAll(); } });
   $("axes").addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) { S.axe = b.dataset.axe; save(); renderAll(); } });
@@ -910,7 +1004,7 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
   // à l'autre via Supabase Realtime (Broadcast, sans base de données). Les favoris restent propres à chaque téléphone.
   var SUPABASE_URL = "/*SUPABASE_URL*/";
   var SUPABASE_KEY = "/*SUPABASE_KEY*/";
-  var SHARED = ["names", "ctx", "level", "temp", "rounds", "stats", "seen", "custom", "recent", "axe"];
+  var SHARED = ["names", "avatars", "ctx", "level", "temp", "rounds", "stats", "seen", "custom", "recent", "axe"];
   var duo = { on: false, live: false, code: "", me: 0, peers: 0, ch: null, open: false, err: "", note: "", applying: false, rev: 0, id: Math.random().toString(36).slice(2) };
   var configured = SUPABASE_URL.indexOf("supabase.co") !== -1 || location.hash === "#local";
 
@@ -1069,6 +1163,8 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
 
   function renderDuo() {
     var el = $("duo");
+    $("duo-badge").hidden = !duo.on;
+    $("duo-badge").className = "badge" + (duo.on && duo.live && duo.peers ? " on" : "");
     if (!configured) { el.hidden = true; return; }
     el.hidden = false;
     if (duo.on) {
@@ -1086,7 +1182,7 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
         '<span class="lbl">ou</span><input id="duo-code" maxlength="5" placeholder="CODE" aria-label="Code de la partie" autocomplete="off">' +
         '<button type="button" data-duo="join">Rejoindre</button>' + (duo.err ? '<span class="err">' + esc(duo.err) + '</span>' : "");
     } else {
-      el.innerHTML = '<span class="lbl">Chacun sur son téléphone ?</span><button type="button" data-duo="open">📱📱 Jouer à deux</button>';
+      el.innerHTML = '<span class="lbl">Jouez chacun sur votre téléphone, en direct.</span><button type="button" data-duo="open">📱📱 Jouer à deux</button>';
     }
   }
   $("duo").addEventListener("click", function (e) {
@@ -1136,7 +1232,7 @@ nav.tabs button[aria-selected="true"] { color: var(--accent); background: color-
     var invited = (new URLSearchParams(location.search).get("partie") || "").trim().toUpperCase();
     if (invited) history.replaceState(null, "", location.pathname + location.hash);
     if (configured) {
-      if (invited.length === 5 && !(saved && saved.code === invited)) startDuo(invited, 1);
+      if (invited.length === 5 && !(saved && saved.code === invited)) { S.started = true; save(); renderAll(); startDuo(invited, 1); }
       else if (saved) startDuo(saved.code, saved.me);
     }
   } catch (e) {}
