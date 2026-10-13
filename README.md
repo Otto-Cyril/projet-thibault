@@ -43,6 +43,8 @@ Jeu de cartes pour couple : vérités, actions, gages et « Cœur ouvert ».
 
 « 📱📱 Jouer à deux » : un téléphone crée une partie (code de 5 caractères), l'autre le tape. L'état de la partie (carte, jauge, scores, prénoms, réglages) est envoyé à l'autre téléphone à chaque action via Supabase Realtime Broadcast, sans table ni base de données. Les clés **publiques** sont dans `src/config.json`. Pour tester sans Supabase, ouvrir deux onglets avec `#local` à la fin de l'URL.
 
+« Partager » ouvre la feuille de partage du téléphone par-dessus l'appli et envoie un lien `?partie=CODE` qui fait rejoindre la partie directement. Le système coupe la connexion quand on passe sur une autre appli : au retour au premier plan (ou quand le réseau revient), l'appli rouvre un canal neuf, réessaie seule en cas d'échec, et l'hôte renvoie l'état de la partie dès que l'autre téléphone réapparaît. La partie en cours est mémorisée, même si le téléphone ferme l'onglet.
+
 ## Pistes pour la suite
 
 1. Ajouter un service worker pour que l'appli marche hors connexion une fois installée.
